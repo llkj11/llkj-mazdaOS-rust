@@ -2,10 +2,14 @@
 
 use std::borrow::Cow;
 
+mod preferences;
+#[cfg(test)]
+use mazda_core::SpeedKph;
+use preferences::ThemedRenderer;
+pub use preferences::{Preferences, Theme, Units};
+
 use font8x8::{UnicodeFonts, BASIC_FONTS, GREEK_FONTS, HIRAGANA_FONTS, LATIN_FONTS};
-use mazda_core::{
-    CommanderEvent, Gear, MazdaReadOnly, MediaState, PlaybackState, SpeedKph, VehicleSnapshot,
-};
+use mazda_core::{CommanderEvent, Gear, MazdaReadOnly, MediaState, PlaybackState, VehicleSnapshot};
 
 pub const DISPLAY_WIDTH: usize = 800;
 pub const DISPLAY_HEIGHT: usize = 480;
@@ -15,6 +19,14 @@ const MAX_METADATA_CHARACTERS: usize = 256;
 const SPEED_COLUMN_WIDTH: usize = 170;
 const GEAR_COLUMN_WIDTH: usize = 120;
 const TEMPERATURE_COLUMN_WIDTH: usize = 158;
+
+/// An intent routed only to the desktop mock. No vehicle write capability is added.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MediaIntent {
+    Previous,
+    TogglePlayback,
+    Next,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Color(u32);
@@ -191,12 +203,16 @@ pub struct UiModel {
     selection: Screen,
     vehicle: VehicleSnapshot,
     media: MediaState,
+    preferences: Preferences,
+    content_focus: Option<usize>,
 }
 
 impl UiModel {
     #[must_use]
     pub fn from_source(source: &impl MazdaReadOnly) -> Self {
         Self {
+            preferences: Preferences::default(),
+            content_focus: None,
             screen: Screen::NowPlaying,
             selection: Screen::NowPlaying,
             vehicle: source.vehicle_snapshot(),
@@ -207,6 +223,14 @@ impl UiModel {
     pub fn refresh(&mut self, source: &impl MazdaReadOnly) {
         self.vehicle = source.vehicle_snapshot();
         self.media = bounded_media_state(source.media_state());
+        if self.screen == Screen::Settings && !self.vehicle.is_confirmed_parked() {
+            self.content_focus = None;
+        }
+    }
+
+    #[must_use]
+    pub const fn preferences(&self) -> Preferences {
+        self.preferences
     }
 
     #[must_use]
@@ -219,7 +243,42 @@ impl UiModel {
         self.selection
     }
 
-    pub fn handle_commander(&mut self, event: CommanderEvent) {
+    pub fn handle_commander(&mut self, event: CommanderEvent) -> Option<MediaIntent> {
+        if let Some(row) = self.content_focus {
+            let count = if self.screen == Screen::NowPlaying {
+                3
+            } else {
+                2
+            };
+            match event {
+                CommanderEvent::RotateClockwise => {
+                    self.content_focus = Some((row + 1) % count);
+                    return None;
+                }
+                CommanderEvent::RotateCounterClockwise => {
+                    self.content_focus = Some((row + count - 1) % count);
+                    return None;
+                }
+                CommanderEvent::Select => {
+                    if self.screen == Screen::NowPlaying {
+                        return Some(match row {
+                            0 => MediaIntent::Previous,
+                            1 => MediaIntent::TogglePlayback,
+                            _ => MediaIntent::Next,
+                        });
+                    }
+                    if self.screen == Screen::Settings && self.vehicle.is_confirmed_parked() {
+                        self.preferences.toggle(row);
+                    }
+                    return None;
+                }
+                CommanderEvent::Back => {
+                    self.content_focus = None;
+                    return None;
+                }
+                _ => {}
+            }
+        }
         match event {
             CommanderEvent::RotateClockwise => self.move_selection(1),
             CommanderEvent::RotateCounterClockwise => self.move_selection(-1),
@@ -228,12 +287,64 @@ impl UiModel {
             }
             CommanderEvent::Navigation => self.activate(Screen::Drive),
             CommanderEvent::Favorites => self.activate(Screen::Settings),
-            CommanderEvent::Select => self.screen = self.selection,
+            CommanderEvent::Select => {
+                self.screen = self.selection;
+                self.content_focus = match self.screen {
+                    Screen::NowPlaying => Some(1),
+                    Screen::Settings if self.vehicle.is_confirmed_parked() => Some(0),
+                    _ => None,
+                };
+            }
             CommanderEvent::Back => self.selection = self.screen,
         }
+        None
+    }
+
+    /// Host pointer input uses the same policy and intents as Commander controls.
+    /// Coordinates are logical 800x480 pixels; events outside controls do nothing.
+    pub fn handle_pointer(&mut self, x: usize, y: usize) -> Option<MediaIntent> {
+        if (12..164).contains(&x) {
+            for (index, screen) in Screen::ALL.into_iter().enumerate() {
+                let top = 80 + index * 76;
+                if (top..top + 60).contains(&y) {
+                    self.activate(screen);
+                    return None;
+                }
+            }
+        }
+        if self.screen == Screen::NowPlaying && (250..302).contains(&y) {
+            for row in 0..3 {
+                let left = 208 + row * 180;
+                if (left..left + 168).contains(&x) {
+                    self.content_focus = Some(row);
+                    return self.handle_commander(CommanderEvent::Select);
+                }
+            }
+        }
+        if self.screen == Screen::Settings
+            && self.vehicle.is_confirmed_parked()
+            && (208..736).contains(&x)
+        {
+            for row in 0..2 {
+                let top = 124 + row * 90;
+                if (top..top + 72).contains(&y) {
+                    self.content_focus = Some(row);
+                    return self.handle_commander(CommanderEvent::Select);
+                }
+            }
+        }
+        None
     }
 
     pub fn render(&self, renderer: &mut impl Renderer) {
+        let mut renderer = ThemedRenderer {
+            target: renderer,
+            theme: self.preferences.theme,
+        };
+        self.render_themed(&mut renderer);
+    }
+
+    fn render_themed(&self, renderer: &mut impl Renderer) {
         renderer.clear(Color::BACKGROUND);
         Self::render_header(renderer);
         self.render_navigation(renderer);
@@ -245,15 +356,11 @@ impl UiModel {
                 Self::render_placeholder(renderer, "PHONE", "Phone integration comes later.");
             }
             Screen::Settings => {
-                Self::render_placeholder(
-                    renderer,
-                    "SETTINGS",
-                    "Desktop simulator / read-only mode",
-                );
+                self.render_settings(renderer);
             }
         }
 
-        Self::render_footer(renderer);
+        self.render_footer(renderer);
     }
 
     fn move_selection(&mut self, delta: isize) {
@@ -273,12 +380,15 @@ impl UiModel {
     fn activate(&mut self, screen: Screen) {
         self.screen = screen;
         self.selection = screen;
+        self.content_focus = None;
     }
 
     fn render_header(renderer: &mut impl Renderer) {
         renderer.fill_rect(Rect::new(0, 0, DISPLAY_WIDTH, 64), Color::PANEL);
-        renderer.text(24, 21, "MAZDA OS", 2, Color::TEXT);
-        renderer.text(600, 24, "DESKTOP SIM", 1, Color::TEXT_MUTED);
+        renderer.text(24, 17, "MAZDA OS", 2, Color::TEXT);
+        renderer.text(24, 43, "2018 MAZDA6", 1, Color::TEXT_MUTED);
+        renderer.fill_rect(Rect::new(560, 16, 216, 32), Color::ACCENT_SOFT);
+        renderer.text(576, 28, "HOST SIMULATION ONLY", 1, Color::TEXT);
         renderer.fill_rect(Rect::new(0, 63, DISPLAY_WIDTH, 1), Color::PANEL_ACTIVE);
     }
 
@@ -332,12 +442,34 @@ impl UiModel {
             Color::TEXT_MUTED,
         );
 
-        let playback = match self.media.playback {
-            PlaybackState::Playing => "PLAYING",
-            PlaybackState::Paused => "PAUSED",
-            PlaybackState::Stopped => "STOPPED",
+        let playback = if self.media.playback == PlaybackState::Playing {
+            "PAUSE"
+        } else {
+            "PLAY"
         };
-        renderer.text(208, 250, playback, 1, Color::TEXT_MUTED);
+        for (index, label) in ["PREVIOUS", playback, "NEXT"].into_iter().enumerate() {
+            let x = 208 + index * 180;
+            let focused = self.content_focus == Some(index);
+            renderer.fill_rect(
+                Rect::new(x, 250, 168, 52),
+                if focused {
+                    Color::ACCENT_SOFT
+                } else {
+                    Color::PANEL
+                },
+            );
+            if focused {
+                renderer.fill_rect(Rect::new(x, 298, 168, 4), Color::ACCENT);
+            }
+            renderer.text(x + 20, 272, label, 1, Color::TEXT);
+        }
+        renderer.text(
+            208,
+            312,
+            "DEMO LIBRARY - NO AUDIO OUTPUT",
+            1,
+            Color::TEXT_MUTED,
+        );
 
         self.render_vehicle_card(renderer, 208, 326);
     }
@@ -346,11 +478,15 @@ impl UiModel {
         renderer.text(208, 92, "DRIVE", 1, Color::ACCENT);
         renderer.text(208, 132, "VEHICLE STATUS", 2, Color::TEXT);
         self.render_vehicle_card(renderer, 208, 208);
-        renderer.text(208, 336, "READ-ONLY DATA PATH", 1, Color::TEXT_MUTED);
+        renderer.text(208, 336, "SIMULATED VEHICLE STATUS", 1, Color::TEXT_MUTED);
         renderer.text(
             208,
             360,
-            "No vehicle-control capability is exposed.",
+            if self.vehicle.gear == Gear::Reverse {
+                "Reverse selected. No camera is connected."
+            } else {
+                "No live vehicle connection."
+            },
             1,
             Color::TEXT_MUTED,
         );
@@ -359,12 +495,10 @@ impl UiModel {
     fn render_vehicle_card(&self, renderer: &mut impl Renderer, x: usize, y: usize) {
         renderer.fill_rect(Rect::new(x, y, 528, 78), Color::PANEL);
 
-        let speed = speed_label(self.vehicle.speed);
-        let temperature = measurement_label(
-            self.vehicle.outside_temperature.get(),
-            "C",
-            TEMPERATURE_COLUMN_WIDTH / GLYPH_SIZE,
-        );
+        let speed = self.preferences.speed_label(self.vehicle.speed);
+        let temperature = self
+            .preferences
+            .temperature_label(self.vehicle.outside_temperature.get());
         render_fitted_text(
             renderer,
             x + 20,
@@ -399,12 +533,77 @@ impl UiModel {
         renderer.text(208, 144, subtitle, 1, Color::TEXT_MUTED);
     }
 
-    fn render_footer(renderer: &mut impl Renderer) {
+    fn render_settings(&self, renderer: &mut impl Renderer) {
+        renderer.text(208, 92, "DISPLAY PREFERENCES", 1, Color::ACCENT);
+        let units = if self.preferences.units == Units::Us {
+            "MPH / FAHRENHEIT"
+        } else {
+            "KM/H / CELSIUS"
+        };
+        let theme = if self.preferences.theme == Theme::Night {
+            "NIGHT"
+        } else {
+            "DAY"
+        };
+        for (row, (label, value)) in [("UNITS", units), ("APPEARANCE", theme)]
+            .into_iter()
+            .enumerate()
+        {
+            let y = 124 + row * 90;
+            let focused = self.content_focus == Some(row);
+            renderer.fill_rect(
+                Rect::new(208, y, 528, 72),
+                if focused {
+                    Color::PANEL_ACTIVE
+                } else {
+                    Color::PANEL
+                },
+            );
+            if focused {
+                renderer.fill_rect(Rect::new(208, y, 4, 72), Color::ACCENT);
+            }
+            renderer.text(228, y + 15, label, 1, Color::TEXT_MUTED);
+            renderer.text(228, y + 37, value, 2, Color::TEXT);
+        }
+        let status = if self.vehicle.is_confirmed_parked() {
+            "PARK CONFIRMED - ENTER TO CHANGE"
+        } else {
+            "LOCKED - REQUIRES VALID ZERO SPEED + PARK"
+        };
+        renderer.text(208, 330, status, 1, Color::ACCENT);
+        renderer.text(
+            208,
+            358,
+            "Preferences apply to this session only.",
+            1,
+            Color::TEXT_MUTED,
+        );
+        renderer.text(
+            208,
+            382,
+            "Vehicle settings are never changed.",
+            1,
+            Color::TEXT_MUTED,
+        );
+    }
+
+    fn render_footer(&self, renderer: &mut impl Renderer) {
         renderer.fill_rect(Rect::new(0, 432, DISPLAY_WIDTH, 48), Color::PANEL);
         renderer.text(
             24,
-            451,
-            "ARROWS: MOVE  ENTER: OPEN  BACKSPACE: CANCEL  H/M: MUSIC  N: DRIVE  F: SETTINGS  ESC: QUIT",
+            442,
+            if self.content_focus.is_some() {
+                "ARROWS: CHOOSE CONTROL  ENTER: ACTIVATE  BACKSPACE: MENU  ESC: QUIT"
+            } else {
+                "ARROWS: CHOOSE PAGE  ENTER: OPEN  H/M: MUSIC  N: DRIVE  F: SETTINGS  ESC: QUIT"
+            },
+            1,
+            Color::TEXT_MUTED,
+        );
+        renderer.text(
+            24,
+            462,
+            "MOCK DATA  1: PARKED  2: DRIVING  3: UNAVAILABLE  4: REVERSE",
             1,
             Color::TEXT_MUTED,
         );
@@ -429,6 +628,7 @@ fn non_empty(value: Option<&str>) -> Option<&str> {
     value.filter(|value| !value.is_empty())
 }
 
+#[cfg(test)]
 fn speed_label(speed: SpeedKph) -> String {
     let Some(value) = speed.get() else {
         return "-- KM/H".to_owned();
@@ -634,6 +834,8 @@ mod tests {
     #[test]
     fn extreme_vehicle_values_render_safely() {
         let ui = UiModel {
+            preferences: super::Preferences::default(),
+            content_focus: None,
             screen: Screen::Drive,
             selection: Screen::Drive,
             vehicle: VehicleSnapshot {
@@ -658,6 +860,8 @@ mod tests {
     #[test]
     fn commander_navigation_wraps_and_shortcuts_remain_deterministic() {
         let mut ui = UiModel {
+            preferences: super::Preferences::default(),
+            content_focus: None,
             screen: Screen::NowPlaying,
             selection: Screen::NowPlaying,
             vehicle: VehicleSnapshot {
@@ -678,6 +882,8 @@ mod tests {
         assert_eq!(ui.selection(), Screen::Settings);
         ui.handle_commander(CommanderEvent::Select);
         assert_eq!(ui.screen(), Screen::Settings);
+        // Opening a page focuses its controls; Back returns to page navigation.
+        ui.handle_commander(CommanderEvent::Back);
         ui.handle_commander(CommanderEvent::RotateClockwise);
         assert_eq!(ui.screen(), Screen::Settings);
         assert_eq!(ui.selection(), Screen::NowPlaying);

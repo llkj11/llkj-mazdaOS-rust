@@ -1,5 +1,18 @@
 # Roadmap
 
+## This fork — 2018 Mazda6, host simulation
+
+Completed first increment: mock media transport controls, Commander content focus,
+pointer input, US/metric preferences, day/night appearance, explicit mock scenarios,
+conservative settings editing policy, local Mac app packaging, and host-only CI.
+See `DESKTOP_DEVELOPMENT.md` for behavior and `SECURITY_REVIEW.md` for the audit.
+
+Next: replace the inherited pixel font with a scalable native rendering layer,
+add a real home screen and accessible focus semantics, then establish exact Mazda6
+CMU/runtime facts before designing any separately authorized hardware work.
+The original upstream roadmap below remains as context; it does not authorize
+firmware changes, USB exploit execution, vehicle access, or interlock bypasses.
+
 ## Done
 
 - Read-only platform capability boundary and deterministic mock backend.

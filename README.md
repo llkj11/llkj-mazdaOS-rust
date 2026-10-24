@@ -1,5 +1,25 @@
 # mazda-os
 
+## This fork: 2018 Mazda6 desktop development
+
+This fork continues the existing Rust native simulator for a **2018 Mazda6**.
+It runs entirely on the host, using synthetic observations and a software-rendered
+800×480 UI. That resolution is inherited from upstream; the car's exact display,
+CMU part number, installed firmware and runtime ABI have not been verified.
+No vehicle adapter, firmware installation, USB preparation or interlock bypass is
+part of this development path. Upstream history and the MIT license are retained.
+
+Start with [the security review](docs/SECURITY_REVIEW.md), then
+[build/run instructions](docs/DESKTOP_DEVELOPMENT.md). The first increment adds
+Commander and pointer media controls, session-local US/metric units and day/night
+appearance, and four mock vehicle scenarios. Audio playback, Bluetooth, phone,
+maps, cameras and stock service integration remain future work.
+
+`cargo run --locked -p mazda-desktop` launches the simulator. `cargo test --locked`
+now selects only the host crates by default. `apps/cmu-inspect` remains preserved
+upstream research for a different car; it is excluded from default builds and CI.
+The upstream overview below describes its original CX-5 research context.
+
 A modern replacement frontend/runtime for first-generation Mazda Connect (Gen 6.5), targeting the stock CMU. The long-term goal is to own the infotainment UX while preserving Mazda's integrated display, Commander input, audio, camera, and other stock services where practical.
 
 The project is desktop-first and deliberately **not** a vehicle-control project.
@@ -57,12 +77,18 @@ Controls:
 - F: Favorites → Settings
 - Escape: quit
 
+In this fork, Enter opens the selected page's controls. Rotate with arrows, then
+Enter to activate. Backspace returns to page navigation. Clicking cards/buttons
+uses the same actions and settings policy. Keys **1 / 2 / 3 / 4** select parked,
+driving, unavailable and reverse mock observations. Settings are editable only
+with valid zero speed and Park; losing that evidence revokes editing immediately.
+
 Verification:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo test --workspace --locked
+cargo clippy --all-targets --locked -- -D warnings
+cargo test --locked
 ```
 
 ## Hardware development
