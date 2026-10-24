@@ -9,15 +9,21 @@ CMU part number, installed firmware and runtime ABI have not been verified.
 No vehicle adapter, firmware installation, USB preparation or interlock bypass is
 part of this development path. Upstream history and the MIT license are retained.
 
-Start with [the security review](docs/SECURITY_REVIEW.md), then
-[build/run instructions](docs/DESKTOP_DEVELOPMENT.md). The first increment adds
-Commander and pointer media controls, session-local US/metric units and day/night
-appearance, and four mock vehicle scenarios. Audio playback, Bluetooth, phone,
-maps, cameras and stock service integration remain future work.
+The active conversion now starts from the owner's **actual NA 70.00.100A UI**.
+It restores Mazda's five circular home icons, background, red focus effect,
+category order, initial Communication selection, and bounded Commander rotation.
+The typography uses Inter. Read [the stock UI port guide](docs/STOCK_UI_PORT.md)
+for extraction, build/run instructions, exact source evidence and incomplete areas.
+The prior custom dashboard is superseded and preserved on a separate local branch.
 
-`cargo run --locked -p mazda-desktop` launches the simulator. `cargo test --locked`
-now selects only the host crates by default. `apps/cmu-inspect` remains preserved
-upstream research for a different car; it is excluded from default builds and CI.
+The [security review](docs/SECURITY_REVIEW.md) covers the upstream audit and later
+font/import changes. Proprietary owner firmware/UI assets stay local and are not
+part of the public source. The app requires an offline artwork import before run.
+Home/category navigation and root menus are the current increment; radio, phone,
+full settings, maps, cameras and actual vehicle services remain unimplemented.
+
+`cargo test --locked` selects host crates by default. `apps/cmu-inspect` is preserved
+upstream research for a different car and excluded from default builds and CI.
 The upstream overview below describes its original CX-5 research context.
 
 A modern replacement frontend/runtime for first-generation Mazda Connect (Gen 6.5), targeting the stock CMU. The long-term goal is to own the infotainment UX while preserving Mazda's integrated display, Commander input, audio, camera, and other stock services where practical.
@@ -72,16 +78,17 @@ Controls:
 - Arrow keys: rotate Commander knob
 - Enter / Space: select
 - Backspace: back
-- H / M: Home or Music → Now Playing
+- H: Home dashboard
+- M: Music → Now Playing
 - N: Navigation → Drive
-- F: Favorites → Settings
+- F: Favorites service (not connected in the host preview)
 - Escape: quit
 
-In this fork, Enter opens the selected page's controls. Rotate with arrows, then
-Enter to activate. Backspace returns to page navigation. Clicking cards/buttons
-uses the same actions and settings policy. Keys **1 / 2 / 3 / 4** select parked,
-driving, unavailable and reverse mock observations. Settings are editable only
-with valid zero speed and Park; losing that evidence revokes editing immediately.
+In this fork, the five home choices retain the firmware's original order and
+rotation stops at the ends. Enter opens a category. Backspace returns Home with
+the prior selection. Settings and service actions are disabled; see the stock UI
+port guide for the current conversion boundary. Keys **1 / 2 / 3 / 4** change
+synthetic vehicle observations only.
 
 Verification:
 

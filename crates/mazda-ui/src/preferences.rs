@@ -1,6 +1,6 @@
 use mazda_core::SpeedKph;
 
-use crate::{measurement_label, Color, Rect, Renderer};
+use crate::measurement_label;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum Units {
@@ -43,65 +43,6 @@ impl Preferences {
             Units::Metric => (celsius, "C"),
         };
         measurement_label(value, unit, 19)
-    }
-
-    pub(crate) fn toggle(&mut self, row: usize) {
-        match row {
-            0 => {
-                self.units = match self.units {
-                    Units::Us => Units::Metric,
-                    Units::Metric => Units::Us,
-                }
-            }
-            1 => {
-                self.theme = match self.theme {
-                    Theme::Night => Theme::Day,
-                    Theme::Day => Theme::Night,
-                }
-            }
-            _ => {}
-        }
-    }
-}
-
-pub(crate) struct ThemedRenderer<'a, R> {
-    pub target: &'a mut R,
-    pub theme: Theme,
-}
-
-impl<R: Renderer> ThemedRenderer<'_, R> {
-    fn color(&self, color: Color) -> Color {
-        if self.theme == Theme::Night {
-            return color;
-        }
-        match color {
-            Color::BACKGROUND => Color::rgb(236, 240, 245),
-            Color::PANEL => Color::rgb(255, 255, 255),
-            Color::PANEL_ACTIVE => Color::rgb(214, 227, 241),
-            Color::TEXT => Color::rgb(20, 32, 47),
-            Color::TEXT_MUTED => Color::rgb(64, 80, 99),
-            Color::ACCENT => Color::rgb(0, 83, 151),
-            Color::ACCENT_SOFT => Color::rgb(187, 215, 240),
-            _ => color,
-        }
-    }
-}
-
-impl<R: Renderer> Renderer for ThemedRenderer<'_, R> {
-    fn size(&self) -> (usize, usize) {
-        self.target.size()
-    }
-    fn clear(&mut self, color: Color) {
-        let color = self.color(color);
-        self.target.clear(color);
-    }
-    fn fill_rect(&mut self, rect: Rect, color: Color) {
-        let color = self.color(color);
-        self.target.fill_rect(rect, color);
-    }
-    fn text(&mut self, x: usize, y: usize, text: &str, scale: usize, color: Color) {
-        let color = self.color(color);
-        self.target.text(x, y, text, scale, color);
     }
 }
 

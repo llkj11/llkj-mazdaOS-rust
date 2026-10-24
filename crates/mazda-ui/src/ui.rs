@@ -1,0 +1,625 @@
+//! Native port of the owner's NA 70.00.100A home/menu geometry.
+//! Source mapping is documented in `docs/STOCK_UI_PORT.md`. No firmware JS executes.
+use crate::{fit_text, text_width, Color, Renderer, StockAssets};
+use mazda_core::{CommanderEvent, MazdaReadOnly, MediaState, VehicleSnapshot};
+use std::sync::Arc;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MediaIntent {
+    Previous,
+    TogglePlayback,
+    Next,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Screen {
+    Home,
+    Applications,
+    Entertainment,
+    Communication,
+    Navigation,
+    Settings,
+}
+impl Screen {
+    pub const DOMAINS: [Self; 5] = [
+        Self::Applications,
+        Self::Entertainment,
+        Self::Communication,
+        Self::Navigation,
+        Self::Settings,
+    ];
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Home => "",
+            Self::Applications => "Applications",
+            Self::Entertainment => "Entertainment",
+            Self::Communication => "Communication",
+            Self::Navigation => "Navigation",
+            Self::Settings => "Settings",
+        }
+    }
+}
+// Positions from MainMenuCtrl.css. Focus rectangles include the CSS transform about center.
+type ImageRect = (i32, i32, usize, usize);
+type Coin = (&'static str, ImageRect, ImageRect, (i32, i32));
+const COINS: [Coin; 5] = [
+    (
+        "Apps",
+        (-35, 336, 114, 122),
+        (-3, 284, 137, 146),
+        (-124, 132),
+    ),
+    ("Audio", (105, 228, 142, 152), (91, 201, 170, 182), (-6, 77)),
+    ("Com", (330, 197, 142, 152), (316, 170, 170, 182), (220, 46)),
+    ("Nav", (549, 228, 142, 152), (535, 201, 170, 182), (439, 77)),
+    (
+        "Set",
+        (721, 336, 114, 122),
+        (666, 284, 137, 146),
+        (561, 132),
+    ),
+];
+// Read from systemApp's visible master lists and en_US localization.
+const APPLICATIONS: [&str; 3] = ["Fuel Economy Monitor", "Warning Guidance", "Maintenance"];
+const ENTERTAINMENT: [&str; 7] = ["FM", "AM", "Stitcher", "Bluetooth", "USB 1", "USB 2", "AUX"];
+const COMMUNICATION: [&str; 7] = [
+    "Notifications",
+    "Favorites",
+    "Contacts",
+    "Call History",
+    "Dial Phone",
+    "Text Messages",
+    "Settings",
+];
+const SETTINGS: [&str; 8] = [
+    "AD-Disp", "Display", "Safety", "Sound", "Clock", "Vehicle", "Devices", "System",
+];
+const DISPLAY: [&str; 6] = [
+    "Turn Display Off",
+    "Turn Display Off and Show Clock",
+    "Mode",
+    "Brightness",
+    "Contrast",
+    "Reset",
+];
+
+#[derive(Debug, Clone)]
+pub struct UiModel {
+    screen: Screen,
+    home_focus: usize,
+    row: usize,
+    assets: Arc<StockAssets>,
+    vehicle: VehicleSnapshot,
+    media: MediaState,
+    settings_rows: bool,
+    settings_tab: usize,
+    notice: Option<&'static str>,
+}
+impl UiModel {
+    #[must_use]
+    pub fn from_source(source: &impl MazdaReadOnly) -> Self {
+        Self {
+            screen: Screen::Home,
+            home_focus: 2,
+            row: 0,
+            assets: Arc::new(StockAssets::default()),
+            vehicle: source.vehicle_snapshot(),
+            media: source.media_state(),
+            settings_rows: false,
+            settings_tab: 1,
+            notice: None,
+        }
+    }
+    pub fn set_assets(&mut self, assets: StockAssets) {
+        self.assets = Arc::new(assets);
+    }
+    pub fn refresh(&mut self, source: &impl MazdaReadOnly) {
+        self.vehicle = source.vehicle_snapshot();
+        self.media = source.media_state();
+    }
+    #[must_use]
+    pub const fn screen(&self) -> Screen {
+        self.screen
+    }
+    #[must_use]
+    pub fn selection(&self) -> Screen {
+        Screen::DOMAINS[self.home_focus]
+    }
+    #[must_use]
+    pub const fn selected_row(&self) -> usize {
+        self.row
+    }
+    #[must_use]
+    pub const fn notice(&self) -> Option<&'static str> {
+        self.notice
+    }
+
+    fn open(&mut self, screen: Screen) {
+        self.screen = screen;
+        self.row = 0;
+        self.settings_rows = false;
+        self.notice = if screen == Screen::Navigation {
+            Some("Host preview: Mazda Compass fallback; maps and GPS are not connected")
+        } else {
+            None
+        };
+        if let Some(index) = Screen::DOMAINS.iter().position(|s| *s == screen) {
+            self.home_focus = index;
+        }
+    }
+    fn rows(&self) -> &'static [&'static str] {
+        match self.screen {
+            Screen::Applications => &APPLICATIONS,
+            Screen::Entertainment => &ENTERTAINMENT,
+            Screen::Communication => &COMMUNICATION,
+            Screen::Settings if self.settings_tab == 1 => &DISPLAY,
+            _ => &[],
+        }
+    }
+    fn first_visible_row(&self) -> usize {
+        self.row.saturating_sub(if self.screen == Screen::Settings {
+            4
+        } else {
+            5
+        })
+    }
+    pub fn handle_commander(&mut self, event: CommanderEvent) -> Option<MediaIntent> {
+        self.notice = None;
+        match event {
+            CommanderEvent::Home => {
+                self.open(Screen::Home);
+                return None;
+            }
+            CommanderEvent::Music => {
+                self.open(Screen::Entertainment);
+                return None;
+            }
+            CommanderEvent::Navigation => {
+                self.open(Screen::Navigation);
+                return None;
+            }
+            // Favorite storage/services are not ported. Do not relabel Favorites as Settings.
+            CommanderEvent::Favorites => {
+                self.notice = Some("Favorites service is not connected");
+                return None;
+            }
+            CommanderEvent::Back => {
+                if self.screen == Screen::Settings && self.settings_rows {
+                    self.settings_rows = false;
+                } else {
+                    self.open(Screen::Home);
+                }
+                return None;
+            }
+            _ => {}
+        }
+        let clockwise = event == CommanderEvent::RotateClockwise;
+        let counterclockwise = event == CommanderEvent::RotateCounterClockwise;
+        if self.screen == Screen::Home {
+            if clockwise {
+                self.home_focus = (self.home_focus + 1).min(4);
+            }
+            if counterclockwise {
+                self.home_focus = self.home_focus.saturating_sub(1);
+            }
+            if event == CommanderEvent::Select {
+                self.open(self.selection());
+            }
+        } else if self.screen == Screen::Settings && !self.settings_rows {
+            if clockwise {
+                self.settings_tab = (self.settings_tab + 1).min(7);
+            }
+            if counterclockwise {
+                self.settings_tab = self.settings_tab.saturating_sub(1);
+            }
+            if event == CommanderEvent::Select {
+                if self.settings_tab == 1 {
+                    self.settings_rows = true;
+                    self.row = 0;
+                } else {
+                    self.notice = Some("This settings tab has not been ported");
+                }
+            }
+        } else if !self.rows().is_empty() {
+            if clockwise {
+                self.row = (self.row + 1).min(self.rows().len() - 1);
+            }
+            if counterclockwise {
+                self.row = self.row.saturating_sub(1);
+            }
+            if event == CommanderEvent::Select {
+                self.notice = Some(
+                    if self.screen == Screen::Settings && !self.vehicle.is_confirmed_parked() {
+                        "Preferences locked: valid zero speed and Park required"
+                    } else {
+                        "Menu restored; service is not connected in this host preview"
+                    },
+                );
+            }
+        }
+        None
+    }
+    pub fn handle_pointer(&mut self, x: usize, y: usize) -> Option<MediaIntent> {
+        if self.screen != Screen::Home && x < 59 && y < 64 {
+            self.open(Screen::Home);
+            return None;
+        }
+        if self.screen == Screen::Home {
+            // Match MainMenuCtrl._computeHitAreas, which has separate JS focus offsets.
+            if x >= 800 || y >= 480 {
+                return None;
+            }
+            let (Ok(x), Ok(y)) = (i64::try_from(x), i64::try_from(y)) else {
+                return None;
+            };
+            let offsets = [(30, -53), (-15, -30), (-15, -30), (-15, -30), (-58, -53)];
+            for (index, coin) in COINS.iter().enumerate() {
+                let (left, top, width, height) = coin.1;
+                let (Ok(width), Ok(height)) = (i64::try_from(width), i64::try_from(height)) else {
+                    continue;
+                };
+                // Tenths of a pixel retain the firmware's 1.2 scaling without float rounding.
+                let (cx, cy, radius) = if index == self.home_focus {
+                    (
+                        i64::from(left) * 10 + width * 6 + offsets[index].0 * 10,
+                        i64::from(top) * 10 + height * 6 + offsets[index].1 * 10,
+                        height * 6,
+                    )
+                } else {
+                    (
+                        i64::from(left) * 10 + width * 5,
+                        i64::from(top) * 10 + height * 5,
+                        height * 5,
+                    )
+                };
+                let dx = x * 10 - cx;
+                let dy = y * 10 - cy;
+                if dx * dx + dy * dy <= radius * radius {
+                    self.open(Screen::DOMAINS[index]);
+                    return None;
+                }
+            }
+        } else if self.screen == Screen::Settings && (80..142).contains(&y) {
+            let start = self.settings_tab.saturating_sub(1).min(4);
+            if (64..148).contains(&x) {
+                self.settings_tab = self.settings_tab.saturating_sub(1);
+            } else if (720..800).contains(&x) {
+                self.settings_tab = (self.settings_tab + 1).min(7);
+            } else if (148..720).contains(&x) {
+                self.settings_tab = (start + (x - 148) / 143).min(7);
+            }
+            self.settings_rows = false;
+        } else if !self.rows().is_empty() && (68..800).contains(&x) {
+            let top = if self.screen == Screen::Settings {
+                144
+            } else {
+                64
+            };
+            if y >= top && y < 480 {
+                let first = self.first_visible_row();
+                let row = first + (y - top) / 64;
+                if row < self.rows().len() {
+                    self.row = row;
+                    if self.screen == Screen::Settings {
+                        self.settings_rows = true;
+                    }
+                    return self.handle_commander(CommanderEvent::Select);
+                }
+            }
+        }
+        None
+    }
+    pub fn render(&self, renderer: &mut impl Renderer) {
+        renderer.clear(Color::BLACK);
+        self.image(renderer, "background", (0, 0, 800, 480));
+        if self.screen == Screen::Home {
+            self.render_home(renderer);
+        } else {
+            self.render_page(renderer);
+        }
+        self.image(renderer, "status", (0, 0, 800, 64));
+        if self.screen != Screen::Home {
+            self.image_natural(renderer, "home", 1, 1);
+            fitted(
+                renderer,
+                117,
+                8,
+                if self.screen == Screen::Navigation {
+                    "Compass"
+                } else {
+                    self.screen.label()
+                },
+                420,
+                38,
+                Color::TEXT,
+            );
+        }
+        // Fixed demonstration clock; no connection to the car or its clock settings.
+        renderer.text(788 - text_width("12:00", 38), 8, "12:00", 38, Color::TEXT);
+    }
+    fn image(&self, r: &mut impl Renderer, name: &str, rect: (i32, i32, usize, usize)) {
+        if let Some(bitmap) = self.assets.get(name) {
+            r.image(rect.0, rect.1, rect.2, rect.3, bitmap);
+        }
+    }
+    fn image_natural(&self, r: &mut impl Renderer, name: &str, x: i32, y: i32) {
+        if let Some(bitmap) = self.assets.get(name) {
+            let (width, height) = bitmap.size();
+            r.image(x, y, width, height, bitmap);
+        }
+    }
+    fn render_home(&self, r: &mut impl Renderer) {
+        self.image(r, "ellipse", (0, 257, 800, 304));
+        let selected = COINS[self.home_focus];
+        self.image(r, "glow", (selected.3 .0, selected.3 .1, 363, 323));
+        for index in [1, 2, 3, 4, 0] {
+            let (name, normal, focused, _) = COINS[index];
+            self.image(
+                r,
+                &if index == self.home_focus {
+                    format!("{name}_Focus")
+                } else {
+                    name.to_owned()
+                },
+                if index == self.home_focus {
+                    focused
+                } else {
+                    normal
+                },
+            );
+        }
+        let label = self.selection().label();
+        let width = text_width(label, 40);
+        r.text(108 + (586 - width) / 2, 403, label, 40, Color::TEXT);
+    }
+    fn render_compass(&self, r: &mut impl Renderer) {
+        // Firmware Compass context, explicitly using its invalid-location state.
+        self.image_natural(r, "compass-bg", 27, 64);
+        for x in [58, 306, 554] {
+            self.image_natural(r, "compass-step", x, 64);
+        }
+        self.image_natural(r, "compass-rail", 80, 240);
+        self.image_natural(r, "compass-needle", 428, 64);
+        let disabled = Color::rgb(67, 67, 67);
+        for (center, label, size, y) in [
+            (182, "W", 85, 129),
+            (306, "NW", 28, 187),
+            (430, "N", 85, 129),
+            (554, "NE", 28, 187),
+            (678, "E", 85, 129),
+        ] {
+            r.text(
+                center - text_width(label, size) / 2,
+                y,
+                label,
+                size,
+                disabled,
+            );
+        }
+        self.image_natural(r, "compass-foreground", 74, 65);
+        let text="Your Mazda is not equipped with a Navigation system. However, an integrated Navigation system is available through your Mazda dealer as a Genuine Mazda Accessory.";
+        let mut line = String::new();
+        let mut y = 276;
+        for word in text.split_whitespace() {
+            let candidate = if line.is_empty() {
+                word.to_owned()
+            } else {
+                format!("{line} {word}")
+            };
+            if text_width(&candidate, 22) > 630 {
+                r.text(
+                    115 + (630 - text_width(&line, 22)) / 2,
+                    y,
+                    &line,
+                    22,
+                    Color::TEXT,
+                );
+                y += 31;
+                word.clone_into(&mut line);
+            } else {
+                line = candidate;
+            }
+        }
+        r.text(
+            115 + (630 - text_width(&line, 22)) / 2,
+            y,
+            &line,
+            22,
+            Color::TEXT,
+        );
+        self.image(r, "compass-line", (60, 376, 740, 3));
+        for (x, label) in [(104, "Latitude"), (329, "Longitude"), (577, "Elevation")] {
+            r.text(x, 411, label, 22, Color::TEXT);
+            r.text(x, 440, "---", 30, Color::TEXT);
+        }
+    }
+    fn render_page(&self, r: &mut impl Renderer) {
+        if self.screen == Screen::Navigation {
+            self.render_compass(r);
+            return;
+        }
+        self.image(r, "list-background", (68, 64, 732, 416));
+        if self.screen == Screen::Settings {
+            self.image_natural(r, "tab-prev", 64, 80);
+            self.image_natural(r, "tab-next", 720, 80);
+            let start = self.settings_tab.saturating_sub(1).min(4);
+            for (column, index) in (start..start + 4).enumerate() {
+                let x = 148 + column * 143;
+                self.image(
+                    r,
+                    if index == self.settings_tab {
+                        "tab-focus"
+                    } else {
+                        "tab"
+                    },
+                    (i32::try_from(x).expect("tab coordinate"), 82, 143, 60),
+                );
+                let (label, size) = fit_text(SETTINGS[index], 131, 30);
+                r.text(
+                    x + (143 - text_width(&label, size)) / 2,
+                    94,
+                    &label,
+                    size,
+                    Color::TEXT,
+                );
+            }
+            if self.settings_tab != 1 {
+                return;
+            }
+        }
+        let top = if self.screen == Screen::Settings {
+            144
+        } else {
+            64
+        };
+        let first = self.first_visible_row();
+        for (visible, (index, label)) in self.rows().iter().enumerate().skip(first).enumerate() {
+            let y = top + visible * 64;
+            if y + 64 > 480 {
+                break;
+            }
+            if index == self.row && (self.screen != Screen::Settings || self.settings_rows) {
+                self.image(
+                    r,
+                    "list-focus",
+                    (68, i32::try_from(y).expect("row coordinate"), 732, 64),
+                );
+            }
+            self.image(
+                r,
+                "list-separator",
+                (68, i32::try_from(y + 62).expect("row coordinate"), 732, 2),
+            );
+            let text = if self.screen == Screen::Applications {
+                format!("{}.  {label}", index + 1)
+            } else {
+                (*label).to_owned()
+            };
+            fitted(r, 139, y + 9, &text, 605, 35, Color::TEXT);
+        }
+    }
+}
+fn fitted(
+    r: &mut impl Renderer,
+    x: usize,
+    y: usize,
+    text: &str,
+    width: usize,
+    size: usize,
+    color: Color,
+) {
+    let (label, size) = fit_text(text, width, size);
+    r.text(x, y, &label, size, color);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use mazda_core::{Gear, PlaybackState, SpeedKph, TemperatureC};
+    struct Fixture;
+    impl MazdaReadOnly for Fixture {
+        fn vehicle_snapshot(&self) -> VehicleSnapshot {
+            VehicleSnapshot {
+                speed: SpeedKph::new(0.0),
+                gear: Gear::Park,
+                outside_temperature: TemperatureC::new(20.0),
+            }
+        }
+        fn media_state(&self) -> MediaState {
+            MediaState {
+                title: None,
+                artist: None,
+                album: None,
+                playback: PlaybackState::Stopped,
+            }
+        }
+        fn next_commander_event(&mut self) -> Option<CommanderEvent> {
+            None
+        }
+    }
+    #[test]
+    fn firmware_home_defaults_to_communication_and_clamps_at_both_ends() {
+        let mut ui = UiModel::from_source(&Fixture);
+        assert_eq!(ui.selection(), Screen::Communication);
+        for _ in 0..10 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        assert_eq!(ui.selection(), Screen::Settings);
+        for _ in 0..10 {
+            ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+        }
+        assert_eq!(ui.selection(), Screen::Applications);
+    }
+    #[test]
+    fn five_domains_route_and_back_restores_the_selected_home_coin() {
+        for (index, screen) in Screen::DOMAINS.into_iter().enumerate() {
+            let mut ui = UiModel::from_source(&Fixture);
+            ui.home_focus = index;
+            ui.handle_commander(CommanderEvent::Select);
+            assert_eq!(ui.screen(), screen);
+            ui.handle_commander(CommanderEvent::Back);
+            assert_eq!(ui.screen(), Screen::Home);
+            assert_eq!(ui.selection(), screen);
+        }
+    }
+    #[test]
+    fn shortcuts_preserve_domains_and_favorites_is_not_repurposed() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.handle_commander(CommanderEvent::Music);
+        assert_eq!(ui.screen(), Screen::Entertainment);
+        ui.handle_commander(CommanderEvent::Navigation);
+        assert_eq!(ui.screen(), Screen::Navigation);
+        ui.handle_commander(CommanderEvent::Favorites);
+        assert_eq!(ui.screen(), Screen::Navigation);
+        assert!(ui.notice().is_some());
+    }
+    #[test]
+    fn circular_pointer_hit_tests_reject_empty_space_and_extreme_input() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.handle_pointer(400, 260);
+        assert_eq!(ui.screen(), Screen::Communication);
+        ui.handle_commander(CommanderEvent::Home);
+        ui.handle_pointer(400, 169);
+        assert_eq!(ui.screen(), Screen::Communication);
+        ui.handle_commander(CommanderEvent::Home);
+        ui.handle_pointer(400, 100);
+        assert_eq!(ui.screen(), Screen::Home);
+        ui.handle_pointer(usize::MAX, usize::MAX);
+        assert_eq!(ui.screen(), Screen::Home);
+    }
+    #[test]
+    fn original_list_order_and_scroll_keep_every_item_reachable_without_writes() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Entertainment);
+        assert_eq!(
+            ui.rows(),
+            ["FM", "AM", "Stitcher", "Bluetooth", "USB 1", "USB 2", "AUX"]
+        );
+        for _ in 0..12 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        assert_eq!(ui.row, 6);
+        assert_eq!(ui.handle_commander(CommanderEvent::Select), None);
+        assert!(ui.notice().is_some());
+        let snapshot = ui.vehicle.clone();
+        ui.open(Screen::Settings);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.vehicle, snapshot);
+    }
+    #[test]
+    fn display_list_scrolls_the_last_item_into_view_and_back_keeps_the_tab() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        assert_eq!(ui.rows().len(), 6);
+        ui.handle_commander(CommanderEvent::Select);
+        for _ in 0..8 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        assert_eq!(ui.rows()[ui.row], "Reset");
+        assert_eq!(ui.first_visible_row(), 1);
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.screen(), Screen::Settings);
+        assert!(!ui.settings_rows);
+    }
+}

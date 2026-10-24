@@ -1,4 +1,6 @@
-# First Mazda6 host increment — validation
+# Mazda6 host simulator — validation
+
+## First increment (before home/typography)
 
 Validated on an arm64 Mac with Rust 1.99.1, 2026-10-24.
 
@@ -25,8 +27,8 @@ The original pixel font remains; scalable typography and accessibility semantics
 are future UI work.
 
 The inherited CMU utility is excluded from default builds/tests/CI. Its Linux
-shell, BusyBox and privileged fixtures were not run. Linux/Windows runtime tests
-and remote GitHub CI have not yet run for this branch. No car was connected or
+shell, BusyBox and privileged fixtures were not run. Linux/Windows runtime tests were not run locally. The subsequently pushed first
+increment passed macOS and Ubuntu GitHub CI (run 40111264964). No car was connected or
 modified, and no firmware payload was executed.
 
 Local tooling initially suffered intermittent executable termination in the
@@ -36,3 +38,42 @@ commands out of Cargo's plugin search. A missing local LLVM library link was als
 repaired. Packaging clears metadata only from its generated app bundle before
 signing, resolving Finder metadata signature failures. These are local build
 environment issues, not changes to the vehicle or system-wide security settings.
+
+
+## Firmware-based UI and typography increment, 2026-10-24
+
+This supersedes the custom-dashboard experiment, preserved locally as `044d3e8`.
+The design basis is the owner's exact NA 70.00.100A reinstall archive, rehashed
+before extraction. The original archive hashes were rechecked unchanged after
+work. 4,499 GUI files and 58 fonts were extracted locally as data; 29 PNG images
+were converted offline for the native port. No firmware updater, script, native
+program or JavaScript was run. See `STOCK_UI_PORT.md` and the source hash ledger.
+
+| Check | Result and scope |
+| --- | --- |
+| Format and static checks | Rust formatting and strict host Clippy passed |
+| Rust tests | 25 passed: core 3, mock 4, UI 14, desktop 4 |
+| Importer tests | 6 synthetic tests passed, including all five PNG filter modes, CRC/end-chunk/truncation checks, color/alpha, expansion bounds and wrong package rejection |
+| Home behavior | Original five domain order, default Communication selection, end clamping, saved Home focus and circular hit-area formula tested |
+| Root lists | Source-derived menu order, final-row scrolling and disconnected-action immutability tested |
+| Data boundary | Missing/moving/non-Park data cannot authorize preferences; all service/settings mutations currently disabled |
+| Artwork rendering | Raw format bounds, clipping, alpha compositing and scaling tested; original artwork used unchanged except specified Compass CSS opacity |
+| Visual inspection | Native home states, original-font/Inter A/B, root menu, Settings first pass and Compass fallback renders inspected |
+| Native app | Ad-hoc signature and delivered signed executable equality verified; 90-frame native smoke exited 0 |
+| Live keyboard | Home selection opened Compass; Back retained the home choice; Entertainment opened the restored source list |
+| Live pointer | Routing/geometry tests pass; successful native pointer activation has not been established by UI automation |
+| Git boundary | Owner firmware, extracted Mazda/JCI source/artwork/fonts and local app/captures stay out of Git |
+
+The original-font comparison is a Rust render of the same source-guided geometry
+using the extracted Tipperary font, not an original Opera runtime screenshot. A
+localhost browser reference server was blocked by automatic approval review before
+starting; direct file URLs were blocked by browser policy. No workaround was used.
+Fractional CSS positions are rounded to framebuffer pixels. Focus/activation
+animations, full Settings controls, deep screens, platform accessibility and all
+real audio/phone/maps/GPS/vehicle services remain unimplemented or unverified.
+The Compass screen uses Mazda's no-navigation fixture, not a finding that the
+owner's car lacks navigation. Clock value is fixed at 12:00 for repeatability.
+
+This increment was tested locally on the arm64 Mac. Remote CI has not run for it;
+only the earlier pushed host increment has passed GitHub macOS/Ubuntu CI. No Docker
+container rebuild or restart applies. No vehicle was connected or modified.

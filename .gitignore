@@ -4,3 +4,7 @@
 .vscode/
 *.swp
 *.swo
+
+# Offline importer caches; owner firmware/assets remain under /target.
+__pycache__/
+*.pyc

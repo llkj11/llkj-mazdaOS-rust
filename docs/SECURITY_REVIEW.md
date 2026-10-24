@@ -79,3 +79,85 @@ served over HTTPS by `static.rust-lang.org`:
 `f7c7e11eb2e07f006e532a8aaac77b32f4527d305ac386c0c633ca6133d35ca9`.
 Repository code was first built offline after this static gate. There are no Docker
 containers for this project to rebuild or restart.
+
+
+## Home and typography increment, 2026-10-24
+
+This section supplements the original upstream review above. `Cargo.lock` changes
+only for the bitmap-font removal and eight registry packages listed below. No
+workflow or vehicle utility behavior is added. Inter's binary font and OFL notice
+were acquired as data, verified against official Google Fonts Git blob identities
+and SHA-256 values, and kept unmodified; provenance is in the font asset directory.
+
+Before compiling, all eight archives were hash-verified against the updated lock,
+checked for archive path/link hazards, inventoried for build scripts, and their
+manifests and sources screened for process, network, credential, filesystem and
+unsafe install behavior. None adds a build script. The bytemuck derive proc macro
+uses the already locked proc-macro2/quote/syn libraries. Sensitive-pattern matches
+were documentation examples or a test-only rebaseline environment variable. No
+malware, mining, credential access or runtime network behavior was found in this
+focused review. This is not an exhaustive semantic audit or guarantee of safety.
+
+| Added package | Version | Archive SHA-256 |
+| --- | --- | --- |
+| bytemuck | 1.25.2 | `95832e849adfb21180ccb6826a99da14e5d266ae5c2e668e1602cf234f153797` |
+| bytemuck_derive | 1.12.1 | `6a1f896587b6f2c069c73d2f0913e2d590c3990285cd2f0b6aa02b786b4c679c` |
+| font-types | 0.12.7 | `835ae9d781464a79026cde387f9cbc650c9a4909d7cf7e658b127e3c35d2f35d` |
+| read-fonts | 0.41.0 | `046a7d674daf459825b32f5062056d6882db0d2f5a479fbd76ccfc870ac18709` |
+| skrifa | 0.44.0 | `819ab7d62b1d3e72d9d9dea5650bac30424f9111364bb94928dbf5ecad1baa68` |
+| swash | 0.2.10 | `6c2499c2d826531388872b2268718aed907a39bd785ab0dcfe57fab26283f92e` |
+| yazi | 0.2.1 | `e01738255b5a16e78bbb83e7fbba0a1e7dd506905cfc53f4622d89015a03fbb5` |
+| zeno | 0.3.3 | `6df3dc4292935e51816d896edcd52aa30bc297907c26167fec31e2b0c6a32524` |
+
+An OSV query for these eight exact versions returned no advisories on 2026-10-24.
+That lookup can change and does not replace source review. An initially considered
+fontdue option was rejected before compilation because its parser carried an
+unmaintained notice, RUSTSEC-2026-0192; fontdue/ttf-parser are absent from the final
+lockfile. The earlier `instant` WebAssembly maintenance warning remains as scoped
+above. No firmware data, local binary, or user file is part of this source change.
+
+Runtime text is drawn exclusively from the bundled font; the new UI has no file,
+network, credential or vehicle-write capability. Unknown or invalid vehicle data
+continues to lock preferences. The package includes both the project MIT notice
+and Inter's SIL OFL 1.1 notice. No Docker configuration or containers are involved.
+
+
+## Owner-firmware UI extraction and port, 2026-10-24
+
+The explicit follow-up authorizes local extraction as the visual/navigation
+reference. The importer pins the previously inventoried whole-file SHA-256 and
+uses the system `unzip` program to read one rootfs entry. The archive password is
+publicly documented, not a recovered personal credential. Python gzip/tar readers
+handle both compression wrappers as data. The importer writes only bounded regular
+files under `jci/gui/` and `jci/fonts/`; it refuses absolute/traversal paths and does
+not create archive links/devices or preserve executable modes. None of the archive
+update instructions, scripts, native programs or JavaScript is executed. The final
+font renderer disables embedded hinting instructions and rasterizes outlines. A
+preliminary original-font comparison used the library's embedded hinting before
+that option was disabled; it did not run firmware native programs or scripts. The PNG converter supports only bounded RGB/RGBA8, validates chunk CRCs,
+requires the end chunk, and bounds decompression to declared dimensions. Runtime
+Rust accepts a fixed-name bounded raw RGBA format, not arbitrary image plugins.
+
+The extracted source establishes the original layout, labels and routes. It is
+not an audit of all proprietary firmware logic. No claim is made about Mazda's
+package signature, all native binaries in the firmware, or real vehicle safety.
+No dynamic firmware execution, firmware installation, device connection, network
+service, radio/phone/GPS integration or vehicle writes occurs. Original Downloads
+archives were rehashed and remain unchanged. Firmware-derived source/artwork/fonts
+and local captures/app packages are excluded from Git; only source identities and
+our importer/native code are committed. The local app's owner-artwork notice makes
+clear that Mazda/JCI resources are not covered by this project's MIT license.
+
+No new crates were added beyond the reviewed typography set above. The native app
+reads local converted assets, and the comparison example can read an explicitly
+supplied original font. This adds local data reads, not a runtime download or
+firmware execution path. Six synthetic importer tests check PNG filters, color and
+alpha, CRC/truncation, format/expansion bounds, and rejection of an unreviewed
+package hash. Host tests check native asset bounds and compositing, source-guided
+navigation, and that disconnected actions leave mock observations unchanged.
+
+A localhost reference HTTP server was rejected by automatic approval review before
+starting. A direct-file browser reference was also rejected by browser URL policy.
+Neither was bypassed. Verification uses static source/artwork inspection, native
+renders and the actual reviewed Rust app; no independent Opera/browser render is
+claimed. There are no Docker containers to rebuild/restart.
