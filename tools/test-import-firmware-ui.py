@@ -1,5 +1,6 @@
 """Parser checks with synthetic data; no owner firmware is needed in CI."""
 import importlib.util
+import json
 import struct
 import tempfile
 import unittest
@@ -46,5 +47,20 @@ class ImportChecks(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'hash differs'):
                 importer.extract(path/'wrong.up',path/'output','unused')
             self.assertFalse((path/'output').exists())
+    def test_clock_labels_preserve_source_order_and_unicode_without_evaluation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            gui=Path(directory)/'jci/gui';app=gui/'apps/syssettings/js/syssettingsApp.js';app.parent.mkdir(parents=True)
+            dictionary=gui/'resources/js/syssettings/syssettingsAppDict_en_US.js';dictionary.parent.mkdir(parents=True)
+            app.write_text("this._SelectTimeZoneCtxtDataList={items:[{text1Id:'second'},{text1Id:'first'}]}; dangerous();")
+            dictionary.write_text('var Localization_syssettingsAppDict_en_US='+json.dumps({'first':'UTC+01:00 été','second':'UTC-05:00 Eastern'})+'; dangerous();')
+            self.assertEqual(importer.clock_zone_text(Path(directory)).decode(),'MZTIMEZONES1\nUTC-05:00 Eastern\nUTC+01:00 été\n')
+    def test_clock_labels_reject_expressions_controls_and_oversized_rows(self):
+        for value in ["dangerous()",json.dumps('unsafe\nlabel'),json.dumps('x'*257)]:
+            with tempfile.TemporaryDirectory() as directory:
+                gui=Path(directory)/'jci/gui';app=gui/'apps/syssettings/js/syssettingsApp.js';app.parent.mkdir(parents=True)
+                dictionary=gui/'resources/js/syssettings/syssettingsAppDict_en_US.js';dictionary.parent.mkdir(parents=True)
+                app.write_text("this._SelectTimeZoneCtxtDataList={items:[{text1Id:'zone'}]};")
+                dictionary.write_text('var Localization_syssettingsAppDict_en_US={zone:'+value+'};')
+                with self.assertRaises(ValueError):importer.clock_zone_text(Path(directory))
 
 if __name__=='__main__': unittest.main()

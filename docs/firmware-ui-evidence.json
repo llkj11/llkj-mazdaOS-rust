@@ -372,6 +372,126 @@
       "path": "jci/gui/common/controls/Slider/css/SliderCtrl.css",
       "bytes": 1062,
       "sha256": "2fef2d25e6bac43df693d055b437ae8a0bd706a5dde307d03d593d044b785fd7"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/images/ClockSettingBG.png",
+      "bytes": 31640,
+      "sha256": "6d5f8667f2670a9fd7a909750d5969f44302084db87cf8ed4b49948c21eca5b4"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/images/ClockSetting_Colon_En.png",
+      "bytes": 375,
+      "sha256": "23762d1978eb47330499624869b8d71ff3ff46b2d39d6a4acd8013a2196a4b2b"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Bg.png",
+      "bytes": 1070,
+      "sha256": "9645dbd986be8581e09d458a6987c932ea9c6790b9b74a6fc418874b814555f4"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Bg_Arch.png",
+      "bytes": 7910,
+      "sha256": "9ad16cc5ac0ce6eb2a04ee1037173ff5bbf806ce9286b9b53e639b723305e31f"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Btn_Separator.png",
+      "bytes": 311,
+      "sha256": "3625ad77662ff5291dc418a6ca7bc87ccffec8db47e413996939ba7c85843f64"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Focus_6.png",
+      "bytes": 18782,
+      "sha256": "540584302fcb912c8b71dc7ef961a429bc458b3e5375f125155707b1fde8edf2"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpBack_En.png",
+      "bytes": 1564,
+      "sha256": "fd0c9754b99b4d3810647ff373f0581b281ad580b8c3f65c267b5ef77647a222"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpMinus_En.png",
+      "bytes": 513,
+      "sha256": "033a3d2bdd244856e297a5483b6a8aaffeb74bc9247c8c91886144d55e9d5b5d"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpMinus_Ds.png",
+      "bytes": 433,
+      "sha256": "67a903b892e62f469ca4cec7341f8e4355f928b97698f2138258b2389b251acf"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpPlus_En.png",
+      "bytes": 826,
+      "sha256": "98bf1ca92666e8eecd17c7a07a6deceaac8719ba5a32b13595f14a261c7a7e73"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpPlus_Ds.png",
+      "bytes": 686,
+      "sha256": "2666cbacda283ec85da0db999a6a136785d1c86ca60c47077f0e3e3250bc92e2"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpAmPm_En.png",
+      "bytes": 3176,
+      "sha256": "4dcb5b4d7791e6892d4342542b262b2c0c4214c1e38739e83de0593318169919"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpAmPm_Ds.png",
+      "bytes": 2812,
+      "sha256": "b1f369e1c4f64ee38c68a142107799ceaecf37548c83ae68e5b02c8cd4455f10"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Checked_En.png",
+      "bytes": 1590,
+      "sha256": "f6dfef5fddefeacae87d62a6555b6100e07b8f6510881db0f822281c275c3f31"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Unchecked_En.png",
+      "bytes": 1457,
+      "sha256": "1e2e67a3c30336cf4e4730890db40a22e563fd84f38aa79cc93c6478a89dc7ca"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Checked_Ds.png",
+      "bytes": 1397,
+      "sha256": "156f58a1246627ebcf5cd06cc88b1fbea236c4edc113641e54e352745767a6be"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Unchecked_Ds.png",
+      "bytes": 1261,
+      "sha256": "ed3fd13ef5b6563b49f96208607d9886a0d5ba62c66358fdc9448fff57202082"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/TitleStyle01_HeaderBg.png",
+      "bytes": 1324,
+      "sha256": "9c1efb0d3ba06989f34fd09a845764563bfd6a7629688e47131aebc7ff006ff5"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/js/ClockSettings2Ctrl.js",
+      "bytes": 29990,
+      "sha256": "a4266f91504e79dd4183dafadeaa3768799051d1a69196841dda62a1ba686ef0"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/css/ClockSettings2Ctrl.css",
+      "bytes": 2997,
+      "sha256": "44c4b781655ba6b581b36bb3deb3209371afeb188a64b5d4b9833ddae0b9f22b"
+    },
+    {
+      "path": "jci/gui/common/templates/ClockSettings2/js/ClockSettings2Tmplt.js",
+      "bytes": 5362,
+      "sha256": "2344cb42b164ed05b206df0c2e61bfd5db5534f799beeb9b8f0e2d7e853b8d04"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/js/Ump3Ctrl.js",
+      "bytes": 117393,
+      "sha256": "2167489e604482a050da62d231cbd7cd5e6f24889ce0c47604bf8d10fe6a2b97"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/css/Ump3Ctrl.css",
+      "bytes": 16469,
+      "sha256": "37f46738d309b4823a8239f4feeb0d291d6dfa94a5624000f9ab16a7fe6ed324"
+    },
+    {
+      "path": "jci/gui/common/controls/Button/js/ButtonCtrl.js",
+      "bytes": 36382,
+      "sha256": "7d3519c48a2dfdf6a2bfac943dcffdff21f11b13330e0f8754c5e42e8109e919"
     }
   ]
 }

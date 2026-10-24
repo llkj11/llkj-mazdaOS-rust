@@ -1,5 +1,5 @@
 //! Bundled Inter outlines, shaping and bounded caches. No system font or network lookup.
-// Font sizes are capped at 96 logical pixels and runs at 256 Unicode scalars.
+// The original clock uses 150px digits; cap sizes at 160 and runs at 256 scalars.
 #![allow(
     clippy::cast_possible_truncation,
     clippy::cast_precision_loss,
@@ -15,6 +15,7 @@ use swash::{FontRef, GlyphId};
 
 const FONT_BYTES: &[u8] = include_bytes!("../assets/fonts/Inter.ttf");
 const MAX_RUNS: usize = 64;
+pub(crate) const MAX_FONT_SIZE: usize = 160;
 const MAX_GLYPHS: usize = 512;
 pub(crate) const MAX_CHARACTERS: usize = 256;
 
@@ -59,7 +60,7 @@ struct TextCache {
 
 impl TextCache {
     fn run(&mut self, text: &str, size: usize) -> Arc<TextRun> {
-        let size = size.clamp(8, 96);
+        let size = size.clamp(8, MAX_FONT_SIZE);
         let charmap = font().charmap();
         let text: String = text
             .chars()
@@ -157,7 +158,7 @@ pub fn text_width(text: &str, size: usize) -> usize {
 #[must_use]
 pub fn fit_text(text: &str, max_width: usize, preferred_size: usize) -> (String, usize) {
     let text: String = text.chars().take(MAX_CHARACTERS).collect();
-    let preferred_size = preferred_size.clamp(8, 96);
+    let preferred_size = preferred_size.clamp(8, MAX_FONT_SIZE);
     let minimum = preferred_size.min(16);
     for size in (minimum..=preferred_size).rev() {
         if text_width(&text, size) <= max_width {
@@ -173,6 +174,20 @@ pub fn fit_text(text: &str, max_width: usize, preferred_size: usize) -> (String,
         }
     }
     (String::new(), minimum)
+}
+
+pub(crate) fn ellipsized(text: &str, max_width: usize, size: usize) -> String {
+    let mut text: String = text.chars().take(MAX_CHARACTERS).collect();
+    if text_width(&text, size) <= max_width {
+        return text;
+    }
+    while text.pop().is_some() {
+        let candidate = format!("{text}…");
+        if text_width(&candidate, size) <= max_width {
+            return candidate;
+        }
+    }
+    String::new()
 }
 
 #[cfg(test)]

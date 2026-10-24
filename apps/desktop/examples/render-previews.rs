@@ -44,6 +44,7 @@ fn main() -> io::Result<()> {
     ))?;
     fs::create_dir_all(directory)?;
     sound_previews(directory, &artwork)?;
+    clock_previews(directory, &artwork)?;
     let mock = MockMazda::demo();
     let mut ui = UiModel::from_source(&mock);
     ui.set_assets(artwork);
@@ -104,6 +105,61 @@ fn main() -> io::Result<()> {
         ui.handle_commander(CommanderEvent::Home);
         ui.handle_commander(CommanderEvent::RotateClockwise);
     }
+    Ok(())
+}
+
+fn clock_previews(directory: &Path, artwork: &StockAssets) -> io::Result<()> {
+    let mut mock = MockMazda::demo();
+    let mut ui = UiModel::from_source(&mock);
+    ui.set_assets(artwork.clone());
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    for _ in 0..3 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-root")?;
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-adjust-12h")?;
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-hour-plus")?;
+    ui.handle_commander(CommanderEvent::Back);
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-format-24h")?;
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-adjust-24h")?;
+    ui.handle_commander(CommanderEvent::Back);
+    for _ in 0..3 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-time-zones")?;
+    for _ in 0..128 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-last-time-zone")?;
+    ui.handle_commander(CommanderEvent::Back);
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "clock-dst")?;
+    ui.set_clock_gps_sync(true);
+    ui.set_clock_navigation_available(true);
+    save(&ui, directory, "clock-gps-navigation")?;
+    mock.set_scenario(DemoScenario::Driving);
+    ui.refresh(&mock);
+    save(&ui, directory, "clock-driving")?;
     Ok(())
 }
 

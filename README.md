@@ -22,10 +22,12 @@ The prior custom dashboard is superseded and preserved on a separate local branc
 The [security review](docs/SECURITY_REVIEW.md) covers the upstream audit and later
 font/import changes. Proprietary owner firmware/UI assets stay local and are not
 part of the public source. The app requires an offline artwork import before run.
-Home/category navigation, root menus, Display controls and Sound controls are
+Home/category navigation, root menus, Display, Sound and three Clock contexts are
 implemented in host state. Display mode, brightness/contrast, screen-off/clock,
 reset, tone/balance, ALC/guidance and equipment-specific checkboxes are usable in
-simulation. The default Touring fixture uses standard audio and no HUD; explicit
+simulation. Clock adds manual time, 12h/24h, GPS Sync, the original time-zone list
+and daylight-saving preference. These remain in memory; no GPS, time-zone
+calculation or Mac clock setting is connected. The default Touring fixture uses standard audio and no HUD; explicit
 `--audio-profile bose`, `--audio-profile bose-j12` and `--hud` fixtures retain the
 other source layouts for testing. Remaining Settings contexts, radio, phone, maps, cameras and actual
 vehicle services still require conversion or integration.
@@ -95,7 +97,8 @@ Controls:
 In this fork, the five home choices retain the firmware's original order and
 rotation stops at the ends. Enter opens a category. Backspace returns Home with
 the prior selection. Display and Sound settings manipulate host preview values while valid
-Park observations are present; other service actions remain disconnected. See the
+Park observations are present; Clock controls follow the same conservative host
+gate. Hold Clock +/- to repeat; AM/PM changes separately. Other service actions remain disconnected. See the
 stock UI port guide for the current conversion boundary. Keys **1 / 2 / 3 / 4** change
 synthetic vehicle observations only.
 

@@ -137,3 +137,38 @@ No real tone, volume, speaker, prompt or OEM setting changed. The Sound host gat
 is conservative Park-only; exact OEM permission policy, service payload handling
 (including guidance-volume status adjustment), SBN/prompt timing, animations and
 touch-release timing remain incomplete. Full Settings conversion remains active.
+
+## Clock root, manual adjustment and time-zone list, 2026-10-24
+
+Three source-defined contexts (ClockTab, SetClock and SelectTimeZone) now have
+native host behavior. Eighteen PNGs bring the fixed local asset set to 65; all
+101 time-zone labels are read from the owner's original dictionary/declaration
+into ignored text. Their source identities are in the evidence ledger.
+
+- 52 Rust tests pass: core 3, desktop 8, mock 4, UI 37. Eight importer and five
+  catalog tests pass. Formatting and strict all-targets Clippy pass. No dependency
+  or lockfile changes were needed.
+- Tests cover 12h/24h wrap, separate AM/PM, minutes without hour carry,
+  GPS/navigation restrictions, Park revocation, time-zone bounds/radio selection,
+  child Back routing, pointer geometry, disabled-row/button skipping, metadata
+  bounds and 150px text rendering. Hold tests establish short release, 1500ms
+  threshold/250ms repeat, cancellation and bounded catch-up after a stall.
+- Ten deterministic Clock renders cover root, both formats, manual adjustment,
+  first/last time-zone selection, DST, GPS/navigation and driving fixtures.
+  They are source-guided Rust renders, not an independent Opera runtime capture.
+- In the live Mac app a short hours+ changed 12:00 PM to 1:00 PM, a 2400ms hold
+  advanced to 4:00 PM, and minutes+ changed to 4:01 PM. Separate AM/PM and 24h
+  selection worked; rotation stopped before disabled AM/PM in 24h. Selecting
+  another time-zone radio stayed in the list. GPS Sync disabled manual time;
+  the driving fixture grayed controls and blocked Enter. Park restored editing.
+  Native pointer activation remains unverified; model pointer tests pass.
+- The signed 0.7.0 app was independently extracted, its ad-hoc signature checked
+  and its executable compared byte-for-byte with the signed build. Two native
+  smoke checks (default and GPS/navigation-available fixtures) each rendered 90
+  frames and exited 0 from that delivered executable.
+
+The displayed time is a deterministic, manually adjustable host value. No ticking
+clock, GPS source, UTC/time-zone/DST calculation, OEM service write, UMP tooltip
+timing, animations or original service-settle behavior is claimed. The original
+labels may contain historical time-zone information. Full Settings and vehicle
+runtime remain incomplete. No Docker service applies and no car was connected.

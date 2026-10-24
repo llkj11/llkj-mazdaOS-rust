@@ -19,5 +19,12 @@ pub fn load(directory: &Path) -> io::Result<StockAssets> {
         })?;
         assets.insert(name, bitmap);
     }
+    let zones = directory.join("clock-zones.txt");
+    if fs::metadata(&zones)?.len() > 132_000 || !assets.load_clock_zones(&fs::read(zones)?) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid original time-zone text",
+        ));
+    }
     Ok(assets)
 }

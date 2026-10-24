@@ -6,6 +6,7 @@ import gzip
 import hashlib
 import json
 import os
+import re
 from pathlib import Path, PurePosixPath
 import shutil
 import struct
@@ -13,10 +14,29 @@ import subprocess
 import tarfile
 import tempfile
 import zlib
+from firmware_literals import LiteralReader
 
 PACKAGE_SHA256 = '5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0'
 GUI_PREFIX = 'jci/gui/'
 ASSETS = {
+    'clock-background': 'common/controls/ClockSettings2/images/ClockSettingBG.png',
+    'clock-colon': 'common/controls/ClockSettings2/images/ClockSetting_Colon_En.png',
+    'clock-panel': 'common/controls/Ump3/images/UMP_Bg.png',
+    'clock-arch': 'common/controls/Ump3/images/UMP_Bg_Arch.png',
+    'clock-separator': 'common/controls/Ump3/images/UMP_Btn_Separator.png',
+    'clock-focus': 'common/controls/Ump3/images/UMP_Focus_6.png',
+    'clock-back': 'common/images/icons/IcnUmpBack_En.png',
+    'clock-minus': 'common/images/icons/IcnUmpMinus_En.png',
+    'clock-minus-disabled': 'common/images/icons/IcnUmpMinus_Ds.png',
+    'clock-plus': 'common/images/icons/IcnUmpPlus_En.png',
+    'clock-plus-disabled': 'common/images/icons/IcnUmpPlus_Ds.png',
+    'clock-ampm': 'common/images/icons/IcnUmpAmPm_En.png',
+    'clock-ampm-disabled': 'common/images/icons/IcnUmpAmPm_Ds.png',
+    'settings-radio': 'common/images/icons/IcnListRadio_Checked_En.png',
+    'settings-radio-empty': 'common/images/icons/IcnListRadio_Unchecked_En.png',
+    'settings-radio-disabled': 'common/images/icons/IcnListRadio_Checked_Ds.png',
+    'settings-radio-empty-disabled': 'common/images/icons/IcnListRadio_Unchecked_Ds.png',
+    'settings-title': 'common/controls/List2/images/TitleStyle01_HeaderBg.png',
     'settings-check': 'common/controls/List2/images/IcnListCheck_Checked_En.png',
     'settings-uncheck': 'common/controls/List2/images/IcnListCheck_Unchecked_En.png',
     'settings-check-disabled': 'common/controls/List2/images/IcnListCheck_Checked_Ds.png',
@@ -122,6 +142,26 @@ def png_rgba(data):
     return b'MZRGBA01'+struct.pack('<II',w,h)+pixels
 
 
+def clock_zone_text(reference):
+    """Keep the exact owner's zone order and English labels as inert local text."""
+    gui=reference/'jci/gui'
+    source=(gui/'apps/syssettings/js/syssettingsApp.js').read_text()
+    match=re.search(r'this\._SelectTimeZoneCtxtDataList\s*=\s*\{',source)
+    if not match: raise ValueError('missing original time-zone declaration')
+    rows=LiteralReader(source,match.end()-1).value()['items']
+    dictionary=(gui/'resources/js/syssettings/syssettingsAppDict_en_US.js').read_text()
+    match=re.search(r'var\s+Localization_\w+\s*=\s*\{',dictionary)
+    if not match: raise ValueError('missing original English dictionary')
+    labels=LiteralReader(dictionary,match.end()-1).value()
+    result=[]
+    for row in rows:
+        text=labels[row['text1Id']]
+        if not isinstance(text,str) or not text or len(text)>256 or any(ord(c)<32 or ord(c)==127 for c in text):
+            raise ValueError('invalid time-zone label')
+        result.append(text)
+    if not 1<=len(result)<=128: raise ValueError('unexpected time-zone count')
+    return ('MZTIMEZONES1\n'+'\n'.join(result)+'\n').encode('utf-8')
+
 def extract(firmware, destination, password):
     hasher = hashlib.sha256()
     with firmware.open('rb') as file:
@@ -162,6 +202,7 @@ def extract(firmware, destination, password):
         if key in ('compass-rail','compass-step','compass-needle'):
             for index in range(19,len(rgba),4): rgba[index]=round(rgba[index]*0.29)
         (rendered/f'{key}.rgba').write_bytes(rgba)
+    (rendered/'clock-zones.txt').write_bytes(clock_zone_text(destination/'reference'))
     manifest={'package_sha256':digest,'files':inventory,'render_assets':ASSETS}
     (destination/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     shutil.copyfile(destination/'manifest.json',rendered/'manifest.json')

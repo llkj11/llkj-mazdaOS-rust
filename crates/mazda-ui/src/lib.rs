@@ -1,4 +1,5 @@
 //! Platform-neutral native UI with bundled, antialiased typography and read-only observations.
+mod clock;
 mod graphics;
 mod preferences;
 mod settings;
@@ -7,6 +8,7 @@ mod stock_assets;
 mod typography;
 mod ui;
 
+pub use clock::{ClockPreferences, TimeFormat};
 pub use graphics::{Color, Framebuffer, Rect, Renderer};
 pub use preferences::{Preferences, Theme, Units};
 pub use settings::{DisplayMode, DisplayPower, DisplayPreferences};

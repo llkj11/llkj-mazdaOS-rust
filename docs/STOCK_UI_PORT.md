@@ -17,7 +17,9 @@ not implemented; the importer pins the exact reviewed package SHA-256.
 
 The local extraction contains **4,499 GUI files and 58 fonts**. The complete local
 inventory records path, byte count and SHA-256 for every extracted regular file.
-A small decoder converts **47 original PNGs** into bounded RGBA images for Rust.
+A small decoder converts **65 original PNGs** into bounded RGBA images for Rust.
+An inert declaration reader also extracts 101 original English time-zone labels
+to an owner-local, bounded text file; no firmware JavaScript is evaluated.
 The three Compass mask images apply the firmware CSS's 0.29 opacity to represent
 its invalid-position state. Other artwork is neither redrawn nor recolored.
 [Selected source identities](firmware-ui-evidence.json) record the inputs used.
@@ -33,6 +35,7 @@ its invalid-position state. Other artwork is neither redrawn nor recolored.
 | `common/controls/List2/css/List2Ctrl.css` | Original list background, red focus art, separators, 64px rows and text column |
 | `apps/syssettings/js/syssettingsApp.js`, `common/controls/Tabs/*` | Original conditional seven/eight settings tabs, four visible at once, directional tab position/history and offscreen arrow jumps |
 | `apps/audiosettings/js/audiosettingsApp.js`, English dictionary, List2/Slider controls | Standard/Bose/Bose J12 row order, control ranges/defaults, tick/label/pivot behavior, checkboxes and Guidance Volume enable state |
+| `apps/syssettings/js/syssettingsApp.js`, English dictionary, ClockSettings2/Ump3/Button controls | Clock root, manual time, time-zone radio list, GPS/navigation enablement, original digit/button geometry and held-input cadence |
 | `apps/emnavi/controls/Compass/*`, `apps/emnavi/js/emnaviApp.js`, English dictionary | Original Compass fallback, background/rail, unavailable position fields, no-navigation explanation |
 
 Home uses the original normal/focused coin images, original background and
@@ -62,12 +65,16 @@ cargo run --locked -p mazda-desktop -- --assets /path/to/render-assets
 # Explicit equipment/service fixtures; no real amplifier or HUD is detected:
 cargo run --locked -p mazda-desktop -- --audio-profile bose
 cargo run --locked -p mazda-desktop -- --audio-profile bose-j12 --hud --guidance-disabled
+# Clock enablement fixture; does not provide a GPS/time service:
+cargo run --locked -p mazda-desktop -- --navigation-available --clock-gps-sync
 ```
 
 The destination must be empty, and the firmware must match the pinned hash. Files
 remain local under ignored `target/owner-firmware/`. The default executable refuses
 to start if the original artwork is missing, rather than substituting a new UI.
 `MZD_FIRMWARE_PASSWORD` may supply the archive password non-interactively.
+Existing 47-image imports need reimporting into an empty directory: the current
+runtime requires all 65 images and `clock-zones.txt`. Missing inputs fail explicitly.
 
 ```sh
 cargo fmt --all -- --check
@@ -87,7 +94,11 @@ No Docker components or container rebuilds are involved.
 ## Controls
 
 - Arrows: rotate through the five home choices; stop at either end.
-- Enter/Space: open a category; enter Display/Sound rows; cycle a mode, toggle a checkbox or enter/leave slider adjustment.
+- Enter/Space: open a category; enter Display/Sound/Clock rows; cycle a mode, toggle a checkbox or enter/leave slider adjustment.
+- Clock: select Adjust Time for the six-button toolbar. Rotate between Back,
+  hours -/+, minutes -/+ and AM/PM. A short +/- press changes on release;
+  holding repeats every 250ms after the source's 1500ms hold threshold (first
+  repeat at 1750ms). AM/PM is unavailable in 24h. Backspace returns to Clock.
 - Backspace: leave slider adjustment or cancel reset; leave rows for tabs, then return Home.
 - H: Home. M: Entertainment. N: Navigation/Compass fallback.
 - F: reports that the Favorites service is disconnected; it does not open Settings.
@@ -123,8 +134,8 @@ and AudioPilot for ALC; the J12 variant omits Centerpoint. NA English strings re
 the registered marks. Bass/Treble/Fade/Balance fills extend from the midpoint;
 ALC/Guidance fill from the start. Source tick marks, center marks, end labels and
 enabled/disabled checkbox artwork are imported without executing firmware code.
-The local raw render set now contains 47 images. Existing local imports need the
-six additional listed PNG conversions or a new import into an empty directory.
+The Sound increment added six PNGs; the current Clock increment adds eighteen
+more, bringing the required local render set to 65 images.
 
 All Sound values are host-session state; there is no audible output, amplifier,
 navigation prompt or OEM-setting write. The firmware's Guidance Volume message
@@ -138,7 +149,26 @@ Changing test profiles cancels interaction and keeps values only in memory.
 The Compass is explicitly the firmware's **no-navigation host fixture**; its text
 is not a claim about whether the owner's actual car has navigation. It displays
 unavailable coordinates and a dimmed direction mask. Maps/GPS are not connected.
-The clock is fixed at 12:00 for repeatable comparison. Home focus/activation
+Clock starts at 12:00 PM for repeatability and can now be adjusted in memory.
+Its status-bar and off-screen clock labels share that value. The original ClockTab
+has five NA rows: Adjust Time, GPS Sync, Time Format, Time Zone Select and Daylight
+Savings Time. GPS Sync disables manual adjustment; with the explicit navigation
+available fixture it also disables time-zone/DST changes. This fixture does not
+change the Compass fallback or establish the owner's installed navigation state.
+The manual screen uses original background, colon and six-button UMP artwork with
+150px Inter digits. Font sizes are bounded at 160px, with hinting still disabled
+and existing 64-run/512-glyph cache limits retained. Source hour changes preserve
+the AM/PM half-day in 12h, and minute changes wrap without hour carry. Held input
+is cancelled when the target, focus, pointer location or host editing gate changes;
+backlogs are bounded. Disabled rows/buttons are skipped during rotation.
+
+Select Time Zone retains all 101 firmware labels and their original order locally.
+Selecting a radio stays in the list; Back restores its root row. Labels reflect
+this historical firmware, not verified current time-zone rules. GPS, time-zone and
+DST calculations, a ticking time service, OEM messages and the original service
+settle delay are not implemented. Time-zone/DST selections do not recalculate the
+displayed time. No OS clock is changed. UMP tooltips/dwell and animations remain.
+Home focus/activation
 animations, deep context transitions, exact touch-release timing and platform
 accessibility semantics remain incomplete. This work does not certify vehicle
 startup, cameras, interlocks, firmware compatibility, or runtime integration.
@@ -175,7 +205,7 @@ python3 tools/catalog-settings.py target/owner-firmware/reference target/owner-f
 python3 tools/test-catalog-settings.py
 ```
 
-A catalogued context is not an implemented screen. The current Display increment
+A catalogued context is not an implemented screen. The current Display/Sound/Clock work
 does not claim completion of all Settings or the full conversion. The
 [deployment plan](CMU_DEPLOYMENT_PLAN.md) explains the older ARM/kernel/libc ABI,
 stock compositor and priority/fallback constraints that must be resolved before

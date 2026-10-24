@@ -127,7 +127,10 @@ impl Renderer for Framebuffer {
         }
     }
     fn text(&mut self, x: usize, y: usize, text: &str, size: usize, color: Color) {
-        if x >= self.width || y >= self.height || !(8..=96).contains(&size) {
+        if x >= self.width
+            || y >= self.height
+            || !(8..=crate::typography::MAX_FONT_SIZE).contains(&size)
+        {
             return;
         }
         let run = text_run(text, size);

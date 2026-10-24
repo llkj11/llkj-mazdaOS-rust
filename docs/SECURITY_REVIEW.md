@@ -202,3 +202,29 @@ crop helper handles original pivot artwork while preserving bounded row stride.
 CLI profile values are a fixed enum and invalid arguments fail before window run.
 VIN decoding used the official NHTSA endpoint only for the requested trim lookup;
 the VIN, mileage and screenshot are excluded from the source/docs/artwork upload.
+
+## Clock contexts and bounded owner text
+
+The Clock port statically reads syssettings, ClockSettings2, Ump3 and Button
+declarations/CSS plus the English dictionary. Eighteen additional PNGs were
+checked against the extraction inventory and decoded as data, bringing the fixed
+allowlist to 65. The existing inert literal reader is factored into
+`tools/firmware_literals.py` for both importer and catalog; it does not evaluate
+calls, callbacks or JavaScript. Only literal dictionary strings in the declared
+time-zone order are emitted to ignored `clock-zones.txt`. Expression values,
+control characters and oversized labels are rejected. The runtime requires a
+version header, valid UTF-8, 1..128 nonempty rows, at most 256 Unicode scalars per
+row and a 132000-byte file limit. Owner text is not embedded in public source.
+
+The 150px clock digits require raising the renderer font-size cap from 96 to
+160px; outline hinting remains disabled and cache/run-length bounds are unchanged.
+Clock values, format, GPS Sync, time-zone index and DST are session-local state.
+There are no OS time-setting calls, GPS/network transport or OEM/device writes.
+Held +/- input uses bounded repeats and is cancelled on target/focus/policy loss
+or pointer departure. Source-defined disabled rows are skipped. Synthetic tests
+cover those boundaries; native keyboard behavior was exercised separately.
+
+No crates, lockfile changes, build dependencies, runtime shell commands,
+credential reads or Docker components were added. Firmware-native programs,
+scripts and JavaScript were not executed. This supplements the bounded review;
+it is not a review of the complete firmware or a vehicle compatibility claim.

@@ -11,7 +11,7 @@ Static declaration extraction currently finds these contexts:
 
 | Firmware app | Declared contexts | Statically resolved list rows | Implementation status |
 | --- | ---: | ---: | --- |
-| syssettings | 28 | 115 | Catalogued; full native implementation and verification pending |
+| syssettings | 28 | 115 | Display host controls and three Clock contexts implemented; remaining contexts, live services and timing still pending |
 | audiosettings | 1 | 0 | SoundTab host controls implemented for standard/Bose/Bose J12; real services, guidance SBN and detailed timing remain |
 | vehsettings | 81 | 176 | Catalogued; full native implementation and verification pending |
 | btpairing | 35 | 12 | Catalogued; full native implementation and verification pending |
@@ -46,6 +46,13 @@ error. A catalogued screen does not imply its routing, layout or behavior works.
   amplifier/equipment detection. Shared tab navigation now preserves directional
   positioning and first-offscreen arrow jumps. Native/model checks are recorded
   in the validation log; the full Settings objective remains active.
+- Settings Clock: ClockTab, SetClock and SelectTimeZone have native host routes,
+  original backgrounds/toolbars, large Inter digits, 12h/24h, separate AM/PM,
+  held +/- controls, GPS/navigation-dependent enablement and all 101 owner-local
+  time-zone labels. Selection and daylight saving are session preferences only;
+  there is no running clock, GPS source or time-zone/DST calculation service.
+  Native keyboard checks pass; precise tooltips, transitions and OEM service
+  settling remain. Shared list rotation now skips disabled rows as List2 does.
 
 ## Required proof before completion
 

@@ -1,5 +1,6 @@
 //! Native port of the owner's NA 70.00.100A home/menu geometry.
 //! Source mapping is documented in `docs/STOCK_UI_PORT.md`. No firmware JS executes.
+use crate::clock::{ClockPage, ClockSession, CLOCK_ROWS};
 use crate::settings::DisplaySession;
 use crate::sound::SoundSession;
 use crate::{
@@ -8,6 +9,8 @@ use crate::{
 };
 use mazda_core::{CommanderEvent, MazdaReadOnly, MediaState, VehicleSnapshot};
 use std::sync::Arc;
+#[path = "clock_ui.rs"]
+mod clock_ui;
 #[path = "sound_ui.rs"]
 mod sound_ui;
 
@@ -110,6 +113,7 @@ pub struct UiModel {
     notice: Option<&'static str>,
     display: DisplaySession,
     sound: SoundSession,
+    clock: ClockSession,
 }
 impl UiModel {
     #[must_use]
@@ -128,14 +132,23 @@ impl UiModel {
             notice: None,
             display: DisplaySession::default(),
             sound: SoundSession::default(),
+            clock: ClockSession::default(),
         }
     }
     pub fn set_assets(&mut self, assets: StockAssets) {
+        if !assets.clock_zones.is_empty() {
+            self.clock.values.time_zone = self
+                .clock
+                .values
+                .time_zone
+                .min(assets.clock_zones.len() - 1);
+        }
         self.assets = Arc::new(assets);
     }
     pub fn refresh(&mut self, source: &impl MazdaReadOnly) {
         self.vehicle = source.vehicle_snapshot();
         self.media = source.media_state();
+        self.clock.restrict(self.vehicle.is_confirmed_parked());
         if !self.vehicle.is_confirmed_parked() {
             self.display.cancel_interaction();
             self.sound.cancel_interaction();
@@ -179,6 +192,18 @@ impl UiModel {
     #[must_use]
     pub const fn sound_adjusting(&self) -> bool {
         self.sound.editing.is_some()
+    }
+    #[must_use]
+    pub const fn clock_preferences(&self) -> crate::ClockPreferences {
+        self.clock.values
+    }
+    pub fn set_clock_navigation_available(&mut self, available: bool) {
+        self.clock.navigation_available = available;
+        self.clock.restrict(self.vehicle.is_confirmed_parked());
+    }
+    pub fn set_clock_gps_sync(&mut self, enabled: bool) {
+        self.clock.values.gps_sync = enabled;
+        self.clock.restrict(self.vehicle.is_confirmed_parked());
     }
     pub fn set_sound_profile(&mut self, profile: SoundProfile) {
         self.sound.cancel_interaction();
@@ -288,6 +313,7 @@ impl UiModel {
     fn open(&mut self, screen: Screen) {
         self.display.cancel_interaction();
         self.sound.cancel_interaction();
+        self.clock.page = ClockPage::Root;
         self.screen = screen;
         self.row = 0;
         self.settings_rows = false;
@@ -307,6 +333,7 @@ impl UiModel {
             Screen::Communication => &COMMUNICATION,
             Screen::Settings if self.settings_tab == 1 => &DISPLAY,
             Screen::Settings if self.settings_tab == 3 => self.sound.profile.labels(),
+            Screen::Settings if self.settings_tab == 4 => &CLOCK_ROWS,
             _ => &[],
         }
     }
@@ -320,6 +347,30 @@ impl UiModel {
                 5
             },
         )
+    }
+    fn row_enabled(&self, row: usize) -> bool {
+        let parked = self.vehicle.is_confirmed_parked();
+        match (self.screen, self.settings_tab) {
+            (Screen::Settings, 3) => self
+                .sound
+                .profile
+                .controls()
+                .get(row)
+                .is_some_and(|&control| self.sound.allowed(control, parked)),
+            (Screen::Settings, 4) => self.clock.enabled(row, parked),
+            (Screen::Settings, _) => parked,
+            _ => true,
+        }
+    }
+    fn rotate_row(&mut self, forward: bool) {
+        let next = if forward {
+            (self.row + 1..self.rows().len()).find(|&row| self.row_enabled(row))
+        } else {
+            (0..self.row).rev().find(|&row| self.row_enabled(row))
+        };
+        if let Some(next) = next {
+            self.row = next;
+        }
     }
     pub fn handle_commander(&mut self, event: CommanderEvent) -> Option<MediaIntent> {
         self.notice = None;
@@ -338,14 +389,7 @@ impl UiModel {
                     | CommanderEvent::Navigation
                     | CommanderEvent::Favorites
             )
-            && ((self.settings_tab == 1
-                && self
-                    .display
-                    .active_event(event, self.vehicle.is_confirmed_parked()))
-                || (self.settings_tab == 3
-                    && self
-                        .sound
-                        .active_event(event, self.vehicle.is_confirmed_parked())))
+            && self.settings_active_event(event)
         {
             return None;
         }
@@ -399,23 +443,38 @@ impl UiModel {
             if event == CommanderEvent::Select {
                 if self.rows().is_empty() {
                     self.notice = Some("This settings tab has not been ported");
-                } else {
+                } else if let Some(first) =
+                    (0..self.rows().len()).find(|&row| self.row_enabled(row))
+                {
                     self.settings_rows = true;
-                    self.row = 0;
+                    self.row = first;
+                } else {
+                    self.notice = Some("Preferences locked: valid zero speed and Park required");
                 }
             }
         } else if !self.rows().is_empty() {
             if clockwise {
-                self.row = (self.row + 1).min(self.rows().len() - 1);
+                self.rotate_row(true);
             }
             if counterclockwise {
-                self.row = self.row.saturating_sub(1);
+                self.rotate_row(false);
             }
             if event == CommanderEvent::Select {
                 self.select_row();
             }
         }
         None
+    }
+    fn settings_active_event(&mut self, event: CommanderEvent) -> bool {
+        let parked = self.vehicle.is_confirmed_parked();
+        match self.settings_tab {
+            1 => self.display.active_event(event, parked),
+            3 => self.sound.active_event(event, parked),
+            4 => self
+                .clock
+                .active_event(event, parked, self.assets.clock_zones.len()),
+            _ => false,
+        }
     }
     fn select_row(&mut self) {
         self.notice = match (self.screen, self.settings_tab) {
@@ -425,6 +484,11 @@ impl UiModel {
             (Screen::Settings, 3) => self
                 .sound
                 .select(self.row, self.vehicle.is_confirmed_parked()),
+            (Screen::Settings, 4) => self.clock.select(
+                self.row,
+                self.vehicle.is_confirmed_parked(),
+                self.assets.clock_zones.len(),
+            ),
             _ => Some("Menu restored; service is not connected in this host preview"),
         };
     }
@@ -443,6 +507,10 @@ impl UiModel {
         }
         if self.screen != Screen::Home && x < 59 && y < 64 {
             self.open(Screen::Home);
+            return None;
+        }
+        if self.clock_child() {
+            self.clock_pointer(x, y);
             return None;
         }
         if self.screen == Screen::Home {
@@ -494,9 +562,15 @@ impl UiModel {
                 let first = self.first_visible_row();
                 let row = first + (y - top) / 64;
                 if row < self.rows().len() {
+                    if !self.row_enabled(row) {
+                        return None;
+                    }
                     self.row = row;
                     if self.screen == Screen::Settings {
                         self.settings_rows = true;
+                        if self.settings_tab == 4 && self.clock_format_pointer(row, x) {
+                            return None;
+                        }
                         if self.settings_tab == 3 && self.sound_pointer_slider(row, x) {
                             return None;
                         }
@@ -520,7 +594,8 @@ impl UiModel {
         if self.display.values.power != DisplayPower::On {
             self.image(renderer, "settings-off", (0, 0, 800, 480));
             if self.display.values.power == DisplayPower::Clock {
-                renderer.text(788 - text_width("12:00", 38), 8, "12:00", 38, Color::TEXT);
+                let label = self.clock.values.label();
+                renderer.text(788 - text_width(&label, 38), 8, &label, 38, Color::TEXT);
             }
             return;
         }
@@ -543,6 +618,8 @@ impl UiModel {
                 8,
                 if self.screen == Screen::Navigation {
                     "Compass"
+                } else if self.clock_child() {
+                    "System Settings"
                 } else {
                     self.screen.label()
                 },
@@ -551,8 +628,9 @@ impl UiModel {
                 Color::TEXT,
             );
         }
-        // Fixed demonstration clock; no connection to the car or its clock settings.
-        renderer.text(788 - text_width("12:00", 38), 8, "12:00", 38, Color::TEXT);
+        // Deterministic host clock: owner settings never change the Mac or the car.
+        let label = self.clock.values.label();
+        renderer.text(788 - text_width(&label, 38), 8, &label, 38, Color::TEXT);
     }
     fn image(&self, r: &mut impl Renderer, name: &str, rect: (i32, i32, usize, usize)) {
         if let Some(bitmap) = self.assets.get(name) {
@@ -791,6 +869,10 @@ impl UiModel {
         }
     }
     fn render_page(&self, r: &mut impl Renderer) {
+        if self.clock_child() {
+            self.render_clock_child(r);
+            return;
+        }
         if self.screen == Screen::Navigation {
             self.render_compass(r);
             return;
@@ -824,6 +906,8 @@ impl UiModel {
                 self.render_display(r);
             } else if self.settings_tab == 3 {
                 self.render_sound(r);
+            } else if self.settings_tab == 4 {
+                self.render_clock_root(r);
             }
             return;
         }
@@ -1151,5 +1235,90 @@ mod tests {
         ui.tab_favor = TabFavor::Second;
         ui.handle_pointer(750, 100);
         assert_eq!(ui.settings_tab, 7);
+    }
+    #[test]
+    fn clock_contexts_route_back_to_their_origin_and_keep_source_observations_read_only() {
+        let mut ui = UiModel::from_source(&Fixture);
+        let mut assets = StockAssets::default();
+        assert!(assets.load_clock_zones(b"MZTIMEZONES1\nWest\nCentral\nEast\n"));
+        ui.set_assets(assets);
+        ui.open(Screen::Settings);
+        for _ in 0..3 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        assert_eq!(ui.settings_tab, 4);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.clock.page, ClockPage::Adjust { focus: 0 });
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.clock_preferences().hour, 13);
+        assert_eq!(ui.clock_preferences().label(), "1:00");
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.row, 0);
+        assert!(ui.settings_rows);
+        for _ in 0..3 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.clock.page, ClockPage::Zones { focus: 2 });
+        ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.clock_preferences().time_zone, 1);
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.row, 3);
+        assert!(ui.settings_rows);
+        ui.handle_commander(CommanderEvent::Home);
+        assert_eq!(ui.clock.page, ClockPage::Root);
+        assert_eq!(ui.vehicle, Fixture.vehicle_snapshot());
+    }
+    #[test]
+    fn clock_pointer_paths_restrictions_and_large_digit_rendering_are_bounded() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 4;
+        ui.settings_rows = true;
+        ui.handle_pointer(680, 280);
+        assert_eq!(ui.clock_preferences().format, crate::TimeFormat::Hours24);
+        ui.row = 0;
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.clock_button_at(usize::MAX, 400), None);
+        assert_eq!(ui.clock_button_at(680, 420), None);
+        ui.focus_clock_button(2);
+        assert_eq!(ui.clock_repeat_target(), Some(2));
+        ui.handle_pointer(300, 420);
+        assert_eq!(ui.clock_preferences().hour, 13);
+        let mut frame = crate::Framebuffer::mazda_connect();
+        ui.render(&mut frame);
+        assert!(frame.pixels().iter().any(|&p| p != 0));
+        ui.set_clock_gps_sync(true);
+        assert_eq!(ui.clock_repeat_target(), None);
+        assert_eq!(ui.clock.page, ClockPage::Adjust { focus: 0 });
+        ui.handle_pointer(300, 420);
+        assert_eq!(ui.clock_preferences().hour, 13);
+        ui.handle_pointer(20, 420);
+        assert_eq!(ui.clock.page, ClockPage::Root);
+        assert_eq!(ui.clock_button_at(300, 420), None);
+    }
+    #[test]
+    fn clock_list_focus_skips_source_disabled_gps_and_navigation_rows() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 4;
+        ui.set_clock_gps_sync(true);
+        ui.set_clock_navigation_available(true);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.row, 1);
+        ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+        assert_eq!(ui.row, 1);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        assert_eq!(ui.row, 2);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        assert_eq!(ui.row, 2);
+        ui.handle_pointer(200, 160);
+        assert_eq!(ui.row, 2);
+        assert_eq!(ui.clock.page, ClockPage::Root);
     }
 }

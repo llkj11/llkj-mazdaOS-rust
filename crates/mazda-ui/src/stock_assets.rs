@@ -87,9 +87,30 @@ impl Bitmap {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct StockAssets(BTreeMap<String, Bitmap>);
+pub struct StockAssets {
+    images: BTreeMap<String, Bitmap>,
+    pub(crate) clock_zones: Vec<String>,
+}
 impl StockAssets {
-    pub const NAMES: [&'static str; 47] = [
+    pub const NAMES: [&'static str; 65] = [
+        "clock-background",
+        "clock-colon",
+        "clock-panel",
+        "clock-arch",
+        "clock-separator",
+        "clock-focus",
+        "clock-back",
+        "clock-minus",
+        "clock-minus-disabled",
+        "clock-plus",
+        "clock-plus-disabled",
+        "clock-ampm",
+        "clock-ampm-disabled",
+        "settings-radio",
+        "settings-radio-empty",
+        "settings-radio-disabled",
+        "settings-radio-empty-disabled",
+        "settings-title",
         "settings-check",
         "settings-uncheck",
         "settings-check-disabled",
@@ -139,15 +160,41 @@ impl StockAssets {
         "settings-off",
     ];
     pub fn insert(&mut self, name: &str, bitmap: Bitmap) {
-        self.0.insert(name.to_owned(), bitmap);
+        self.images.insert(name.to_owned(), bitmap);
     }
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&Bitmap> {
-        self.0.get(name)
+        self.images.get(name)
     }
     #[must_use]
     pub fn is_complete(&self) -> bool {
-        Self::NAMES.iter().all(|name| self.0.contains_key(*name))
+        Self::NAMES
+            .iter()
+            .all(|name| self.images.contains_key(*name))
+            && !self.clock_zones.is_empty()
+    }
+    /// Bounded owner-derived text, with no JavaScript, expression or timezone execution.
+    pub fn load_clock_zones(&mut self, bytes: &[u8]) -> bool {
+        if bytes.len() > 132_000 {
+            return false;
+        }
+        let Some(text) = std::str::from_utf8(bytes)
+            .ok()
+            .and_then(|s| s.strip_prefix("MZTIMEZONES1\n"))
+        else {
+            return false;
+        };
+        let rows: Vec<_> = text.split_terminator('\n').collect();
+        if rows.is_empty()
+            || rows.len() > 128
+            || rows.iter().any(|row| {
+                row.is_empty() || row.chars().count() > 256 || row.chars().any(char::is_control)
+            })
+        {
+            return false;
+        }
+        self.clock_zones = rows.into_iter().map(str::to_owned).collect();
+        true
     }
 }
 
@@ -200,5 +247,24 @@ mod tests {
             vec![10, 20, 30, 40, 90, 100, 110, 120]
         );
         assert!(original.centered_portion(0, true).is_none());
+    }
+    #[test]
+    fn owner_zone_text_is_bounded_and_invalid_input_preserves_existing_names() {
+        let mut assets = StockAssets::default();
+        assert!(assets.load_clock_zones(b"MZTIMEZONES1\nEastern\nPacific\n"));
+        let before = assets.clock_zones.clone();
+        for invalid in [
+            b"bad header".as_slice(),
+            b"MZTIMEZONES1\n",
+            b"MZTIMEZONES1\nunsafe\tlabel\n",
+            b"MZTIMEZONES1\n\xff\n",
+        ] {
+            assert!(!assets.load_clock_zones(invalid));
+            assert_eq!(assets.clock_zones, before);
+        }
+        assert!(!assets.load_clock_zones(format!("MZTIMEZONES1\n{}\n", "x".repeat(257)).as_bytes()));
+        assert!(
+            !assets.load_clock_zones(format!("MZTIMEZONES1\n{}", "label\n".repeat(129)).as_bytes())
+        );
     }
 }

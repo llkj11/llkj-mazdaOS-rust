@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 mod assets;
+mod clock_hold;
+use clock_hold::{ClockHold, Source as HoldSource};
 
 use mazda_core::CommanderEvent;
 use mazda_mock::{DemoScenario, MockMazda};
@@ -17,27 +19,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "Mazda Connect - Firmware UI + Inter - {} audio fixture",
         audio_profile.label()
     );
-    let explicit_assets = arguments
-        .iter()
-        .position(|arg| arg == "--assets")
-        .and_then(|index| arguments.get(index + 1))
-        .map(PathBuf::from);
-    let packaged_assets = std::env::current_exe()?
-        .parent()
-        .and_then(|p| p.parent())
-        .map(|p| p.join("Resources/firmware-assets"));
-    let asset_directory = explicit_assets
-        .or_else(|| packaged_assets.filter(|p| p.is_dir()))
-        .unwrap_or_else(|| PathBuf::from("target/owner-firmware/render-assets"));
-    let artwork=assets::load(&asset_directory).map_err(|error|std::io::Error::new(error.kind(),format!("Cannot load owner firmware artwork at {}: {error}. Run tools/import-firmware-ui.py first.",asset_directory.display())))?;
+    let artwork = load_artwork(&arguments)?;
     let mut frames = 0_u32;
     let mut pointer_was_down = false;
+    let mut clock_hold: Option<ClockHold> = None;
     let mut mazda = MockMazda::demo();
     let mut ui = UiModel::from_source(&mazda);
     ui.set_assets(artwork);
-    ui.set_sound_profile(audio_profile);
-    ui.set_hud_installed(arguments.iter().any(|arg| arg == "--hud"));
-    ui.set_guidance_available(!arguments.iter().any(|arg| arg == "--guidance-disabled"));
+    configure_fixtures(&mut ui, &arguments, audio_profile);
     let mut framebuffer = Framebuffer::mazda_connect();
     let mut window = Window::new(
         &base_title,
@@ -61,6 +50,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         for key in window.get_keys_pressed(KeyRepeat::No) {
+            if matches!(key, Key::Enter | Key::Space) {
+                if let Some(button) = ui.clock_repeat_target() {
+                    clock_hold = Some(ClockHold::new(button, HoldSource::Key(key), Instant::now()));
+                    continue;
+                }
+            }
             if let Some(scenario) = scenario_key(key) {
                 mazda.set_scenario(scenario);
                 ui.refresh(&mazda);
@@ -75,7 +70,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some((x, y)) = window.get_mouse_pos(MouseMode::Discard) {
                 // Discard mode bounds coordinates to the logical window dimensions.
                 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                let intent = ui.handle_pointer(x as usize, y as usize);
+                let intent = if let Some(button) = ui
+                    .clock_button_at(x as usize, y as usize)
+                    .filter(|b| (1..=4).contains(b))
+                {
+                    ui.focus_clock_button(button);
+                    clock_hold = Some(ClockHold::new(button, HoldSource::Pointer, Instant::now()));
+                    None
+                } else {
+                    ui.handle_pointer(x as usize, y as usize)
+                };
                 apply_media_intent(&mut mazda, intent);
                 ui.refresh(&mazda);
             }
@@ -95,6 +99,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ui.refresh(&mazda);
             last_source_refresh = Instant::now();
         }
+        poll_clock_hold(&mut clock_hold, &window, &mut ui, &mut mazda);
         if ui.notice() != last_notice {
             window.set_title(&ui.notice().map_or_else(
                 || base_title.clone(),
@@ -112,6 +117,68 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+fn configure_fixtures(
+    ui: &mut UiModel,
+    arguments: &[std::ffi::OsString],
+    audio_profile: SoundProfile,
+) {
+    ui.set_sound_profile(audio_profile);
+    ui.set_hud_installed(arguments.iter().any(|arg| arg == "--hud"));
+    ui.set_guidance_available(!arguments.iter().any(|arg| arg == "--guidance-disabled"));
+    ui.set_clock_navigation_available(arguments.iter().any(|arg| arg == "--navigation-available"));
+    ui.set_clock_gps_sync(arguments.iter().any(|arg| arg == "--clock-gps-sync"));
+}
+
+fn load_artwork(
+    arguments: &[std::ffi::OsString],
+) -> Result<mazda_ui::StockAssets, Box<dyn std::error::Error>> {
+    let explicit_assets = arguments
+        .iter()
+        .position(|arg| arg == "--assets")
+        .and_then(|index| arguments.get(index + 1))
+        .map(PathBuf::from);
+    let packaged_assets = std::env::current_exe()?
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|p| p.join("Resources/firmware-assets"));
+    let asset_directory = explicit_assets
+        .or_else(|| packaged_assets.filter(|p| p.is_dir()))
+        .unwrap_or_else(|| PathBuf::from("target/owner-firmware/render-assets"));
+    let artwork=assets::load(&asset_directory).map_err(|error|std::io::Error::new(error.kind(),format!("Cannot load owner firmware artwork at {}: {error}. Run tools/import-firmware-ui.py first.",asset_directory.display())))?;
+    Ok(artwork)
+}
+
+fn poll_clock_hold(
+    hold: &mut Option<ClockHold>,
+    window: &Window,
+    ui: &mut UiModel,
+    mock: &mut MockMazda,
+) {
+    if let Some(held) = hold.as_mut() {
+        let down = match held.source {
+            HoldSource::Key(key) => window.is_key_down(key),
+            HoldSource::Pointer => window.get_mouse_down(MouseButton::Left),
+        };
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let inside = match held.source {
+            HoldSource::Key(_) => true,
+            HoldSource::Pointer => {
+                window
+                    .get_mouse_pos(MouseMode::Discard)
+                    .and_then(|(x, y)| ui.clock_button_at(x as usize, y as usize))
+                    == Some(held.button)
+            }
+        };
+        let (changes, finished) = held.poll(ui.clock_repeat_target(), down, inside, Instant::now());
+        for _ in 0..changes {
+            handle_event(ui, mock, CommanderEvent::Select);
+        }
+        if finished {
+            *hold = None;
+        }
+    }
 }
 
 fn parse_audio_profile(arguments: &[std::ffi::OsString]) -> Result<SoundProfile, &'static str> {
