@@ -161,3 +161,26 @@ starting. A direct-file browser reference was also rejected by browser URL polic
 Neither was bypassed. Verification uses static source/artwork inspection, native
 renders and the actual reviewed Rust app; no independent Opera/browser render is
 claimed. There are no Docker containers to rebuild/restart.
+
+
+## Settings catalog, Display controls and platform plan
+
+The static Settings declaration reader treats function calls, member references and
+callbacks as inert expressions. It never evaluates firmware JavaScript. Synthetic
+parser tests cover nested objects, comments/strings/Unicode, malformed declarations,
+member references, callback expressions and reference cycles. The resulting owner
+catalog remains under ignored `target/`; only our parser and metadata are public.
+
+Display control changes modify an in-memory host session and preview pixels only.
+There is no transport for changing OEM or Mac system settings. Source observations
+remain read-only. Edit/drag/reset state is revoked when valid zero speed and Park
+are lost. Screen-off is a local render state; user activity restores it. The reset
+button resets Display values only and defaults to No. The additional twelve artwork
+files are bounded PNG data decoded with the already reviewed converter, not new
+scripts/native libraries. No dependencies or Docker services were added.
+
+The platform plan reads a small whitelist of original configuration files and ARM
+libraries as data. ELF metadata, paths and hashes inform the plan; ARM libraries and
+startup scripts were not executed. Their bytes remain local. Kernel 3.0.35/glibc
+2.11.1 and the OEM compositor/supervisor imply unresolved deployment work, not a
+claim that the host binary is car-compatible. No install/flash payload is created.

@@ -17,7 +17,7 @@ not implemented; the importer pins the exact reviewed package SHA-256.
 
 The local extraction contains **4,499 GUI files and 58 fonts**. The complete local
 inventory records path, byte count and SHA-256 for every extracted regular file.
-A small decoder converts **29 original PNGs** into bounded RGBA images for Rust.
+A small decoder converts **41 original PNGs** into bounded RGBA images for Rust.
 The three Compass mask images apply the firmware CSS's 0.29 opacity to represent
 its invalid-position state. Other artwork is neither redrawn nor recolored.
 [Selected source identities](firmware-ui-evidence.json) record the inputs used.
@@ -83,8 +83,8 @@ No Docker components or container rebuilds are involved.
 ## Controls
 
 - Arrows: rotate through the five home choices; stop at either end.
-- Enter/Space: open a category; move from Settings tabs to the Display list.
-- Backspace: leave Display rows for tabs, then return Home with the prior choice.
+- Enter/Space: open a category; enter Display rows; cycle a mode or enter/leave slider adjustment.
+- Backspace: leave slider adjustment or cancel reset; leave rows for tabs, then return Home.
 - H: Home. M: Entertainment. N: Navigation/Compass fallback.
 - F: reports that the Favorites service is disconnected; it does not open Settings.
 - 1–4: synthetic Park, Drive, unavailable and Reverse observations.
@@ -101,9 +101,16 @@ and report that fact in the window title. There is no radio, phone, Bluetooth,
 media playback or vehicle adapter. Existing mock playback code is preserved in
 `mazda-mock`, but this UI does not pretend those stock services have been ported.
 
-Settings has the original tab navigation and Display labels, but its full image,
-slider/toggle controls and other tab bodies are not converted. All settings actions
-are disabled. Invalid/moving/non-Park observations still cannot authorize editing.
+Settings Display now has its source image header, three-row viewport with a clipped
+trailing row, exact English labels, Auto/Day/Night choices, -5..5 brightness/contrast
+sliders, display-off/clock and reset confirmation. These manipulate session-local
+host state only. The preview image responds to slider changes using an approximate
+software tone curve; it does not set the Mac backlight or reproduce OEM calibration.
+Pointer sliders support dragging; Enter enters/leaves knob adjustment. Reset starts
+on No; Yes restores Display defaults only. Any input wakes the display without
+activating the covered control. Other Settings tabs and deeper contexts still need
+conversion. Invalid/moving/non-Park observations revoke ongoing editing/confirmation
+and cannot authorize preference changes.
 The Compass is explicitly the firmware's **no-navigation host fixture**; its text
 is not a claim about whether the owner's actual car has navigation. It displays
 unavailable coordinates and a dimmed direction mask. Maps/GPS are not connected.
@@ -130,3 +137,22 @@ Mazda/JCI assets and fonts remain proprietary owner-supplied material, outside t
 project's MIT license. They, generated captures and local app binaries are not
 committed or uploaded. Inter's SIL OFL license is included separately. The earlier
 custom dashboard is preserved only on the local `feature/home-typography` branch.
+
+
+## Full Settings work in progress
+
+[Coverage and remaining work](CONVERSION_PROGRESS.md) tracks 192 declared contexts
+across the six relevant firmware apps. `tools/catalog-settings.py` parses literal
+declarations without evaluating JavaScript; dynamic expressions remain explicit
+inert data. Generate the owner-local catalog with:
+
+```sh
+python3 tools/catalog-settings.py target/owner-firmware/reference target/owner-firmware/settings-catalog.json
+python3 tools/test-catalog-settings.py
+```
+
+A catalogued context is not an implemented screen. The current Display increment
+does not claim completion of all Settings or the full conversion. The
+[deployment plan](CMU_DEPLOYMENT_PLAN.md) explains the older ARM/kernel/libc ABI,
+stock compositor and priority/fallback constraints that must be resolved before
+any vehicle proposal.

@@ -22,8 +22,10 @@ The prior custom dashboard is superseded and preserved on a separate local branc
 The [security review](docs/SECURITY_REVIEW.md) covers the upstream audit and later
 font/import changes. Proprietary owner firmware/UI assets stay local and are not
 part of the public source. The app requires an offline artwork import before run.
-Home/category navigation and root menus are the current increment; radio, phone,
-full settings, maps, cameras and actual vehicle services remain unimplemented.
+Home/category navigation, root menus and Display controls are implemented in host
+state. Display mode, brightness/contrast, screen-off/clock and reset are usable in
+simulation. Remaining Settings contexts, radio, phone, maps, cameras and actual
+vehicle services still require conversion or integration.
 
 `cargo test --locked` selects host crates by default. `apps/cmu-inspect` is preserved
 upstream research for a different car and excluded from default builds and CI.
@@ -89,8 +91,9 @@ Controls:
 
 In this fork, the five home choices retain the firmware's original order and
 rotation stops at the ends. Enter opens a category. Backspace returns Home with
-the prior selection. Settings and service actions are disabled; see the stock UI
-port guide for the current conversion boundary. Keys **1 / 2 / 3 / 4** change
+the prior selection. Display settings manipulate host preview values while valid
+Park observations are present; other service actions remain disconnected. See the
+stock UI port guide for the current conversion boundary. Keys **1 / 2 / 3 / 4** change
 synthetic vehicle observations only.
 
 Verification:

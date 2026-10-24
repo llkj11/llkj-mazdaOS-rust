@@ -17,6 +17,18 @@ import zlib
 PACKAGE_SHA256 = '5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0'
 GUI_PREFIX = 'jci/gui/'
 ASSETS = {
+    'settings-test': 'apps/syssettings/images/SettingsTestImage.png',
+    'settings-inline': 'common/controls/List2/images/InLineButton.png',
+    'settings-inline-selected': 'common/controls/List2/images/InLineButton_Selected.png',
+    'settings-slider-bg': 'common/controls/List2/images/ListItem_SliderBG-1.png',
+    'settings-slider-fill': 'common/controls/List2/images/ListItem_Slider-1.png',
+    'settings-slider-focus': 'common/controls/List2/images/ListItem_Slider_Focus-1.png',
+    'settings-knob': 'common/controls/List2/images/ListItem_Slider_Knob.png',
+    'settings-knob-focus': 'common/controls/List2/images/ListItem_Slider_KnobFocus-1.png',
+    'settings-dialog-bg': 'common/controls/Dialog3/images/DialogBG_Style02.png',
+    'settings-dialog-button': 'common/controls/Dialog3/images/Dialog_2Btn.png',
+    'settings-dialog-button-focus': 'common/controls/Dialog3/images/Dialog_2Btn_Focus.png',
+    'settings-off': 'apps/system/controls/OffScreen/images/OffScreenBackground.png',
     'compass-bg': 'apps/emnavi/controls/Compass/images/CompassBg.png',
     'compass-foreground': 'apps/emnavi/controls/Compass/images/CompassForeground.png',
     'compass-rail': 'apps/emnavi/controls/Compass/images/GreyRail.png',

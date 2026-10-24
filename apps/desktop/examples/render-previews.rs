@@ -63,6 +63,42 @@ fn main() -> io::Result<()> {
         if name == "settings" {
             ui.handle_commander(CommanderEvent::Select);
             save(&ui, directory, "settings-display")?;
+            for _ in 0..2 {
+                ui.handle_commander(CommanderEvent::RotateClockwise);
+            }
+            ui.handle_commander(CommanderEvent::Select);
+            save(&ui, directory, "display-day")?;
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+            ui.handle_commander(CommanderEvent::Select);
+            for _ in 0..3 {
+                ui.handle_commander(CommanderEvent::RotateClockwise);
+            }
+            save(&ui, directory, "display-brightness")?;
+            ui.handle_commander(CommanderEvent::Select);
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+            ui.handle_commander(CommanderEvent::Select);
+            for _ in 0..2 {
+                ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+            }
+            save(&ui, directory, "display-contrast")?;
+            ui.handle_commander(CommanderEvent::Select);
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+            ui.handle_commander(CommanderEvent::Select);
+            save(&ui, directory, "display-reset-no")?;
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+            save(&ui, directory, "display-reset-yes")?;
+            ui.handle_commander(CommanderEvent::Select);
+            save(&ui, directory, "display-reset-done")?;
+            for _ in 0..4 {
+                ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+            }
+            ui.handle_commander(CommanderEvent::Select);
+            save(&ui, directory, "display-off-clock")?;
+            ui.handle_commander(CommanderEvent::Select);
+            ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+            ui.handle_commander(CommanderEvent::Select);
+            save(&ui, directory, "display-off")?;
+            ui.handle_commander(CommanderEvent::Select);
         }
         ui.handle_commander(CommanderEvent::Home);
         ui.handle_commander(CommanderEvent::RotateClockwise);

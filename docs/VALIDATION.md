@@ -77,3 +77,30 @@ owner's car lacks navigation. Clock value is fixed at 12:00 for repeatability.
 This increment was tested locally on the arm64 Mac. Remote CI has not run for it;
 only the earlier pushed host increment has passed GitHub macOS/Ubuntu CI. No Docker
 container rebuild or restart applies. No vehicle was connected or modified.
+
+## Source-guided Display controls, 2026-10-24
+
+This adds mode selection, bounded brightness/contrast adjustment, off/clock states,
+consumed-input wake and No/Yes reset to the native Display screen. It preserves
+the original test image, tab/row geometry and button/slider artwork. English
+`Mode` is rendered as the firmware dictionary's `System` label. Twelve additional
+PNG data assets bring the local render set to 41. The preview tone adjustment is
+an approximation, not an OEM calibration or a system-backlight change.
+
+- 31 host Rust tests passed; six importer and five inert-catalog parser tests passed.
+- Formatting and strict all-targets Clippy passed. Display state tests cover
+  range limits, pointer endpoints, reset defaults/cancel/confirm, wake and loss of
+  Park authorization. The desktop regression also clears a stale lock notice when
+  valid Park observations return.
+- Live Mac Commander input adjusted brightness to +2, entered contrast editing,
+  revoked editing under the driving fixture and opened the original reset dialog
+  with No selected. Native pointer activation is still unverified; tests establish
+  routing and drag behavior in the model, not delivery of real mouse events.
+- The rebuilt signed 0.5.0 package was independently extracted, its signature
+  verified, and its exact delivered binary completed 90 native frames with exit 0.
+- The earlier stock-artwork commit `fda77dc` passed macOS/Ubuntu CI in run
+  40127145756; catalog/platform-plan commit `d8d016a` passed in run 40127725660.
+  Later commit checks must be verified separately.
+
+The full 192-context Settings conversion, OEM services, exact firmware animation
+timing and car runtime remain incomplete. No Docker project applies.

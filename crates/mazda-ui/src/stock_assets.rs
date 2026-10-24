@@ -29,6 +29,33 @@ impl Bitmap {
             rgba: bytes[16..].to_vec(),
         })
     }
+    pub(crate) fn adjusted(&self, brightness: i8, contrast: i8) -> Self {
+        let mut result = self.clone();
+        for pixel in result.rgba.as_chunks_mut::<4>().0 {
+            for channel in &mut pixel[..3] {
+                let value = (i16::from(*channel) - 128) * (10 + i16::from(contrast)) / 10
+                    + 128
+                    + i16::from(brightness) * 12;
+                *channel = u8::try_from(value.clamp(0, 255)).unwrap_or(0);
+            }
+        }
+        result
+    }
+    pub(crate) fn left_portion(&self, width: usize) -> Option<Self> {
+        let width = width.min(self.width);
+        if width == 0 {
+            return None;
+        }
+        let mut rgba = Vec::with_capacity(width * self.height * 4);
+        for row in self.rgba.chunks_exact(self.width * 4) {
+            rgba.extend_from_slice(&row[..width * 4]);
+        }
+        Some(Self {
+            width,
+            height: self.height,
+            rgba,
+        })
+    }
     #[must_use]
     pub const fn size(&self) -> (usize, usize) {
         (self.width, self.height)
@@ -38,7 +65,7 @@ impl Bitmap {
 #[derive(Debug, Clone, Default)]
 pub struct StockAssets(BTreeMap<String, Bitmap>);
 impl StockAssets {
-    pub const NAMES: [&'static str; 29] = [
+    pub const NAMES: [&'static str; 41] = [
         "compass-bg",
         "compass-foreground",
         "compass-rail",
@@ -68,6 +95,18 @@ impl StockAssets {
         "Nav_Focus",
         "Set",
         "Set_Focus",
+        "settings-test",
+        "settings-inline",
+        "settings-inline-selected",
+        "settings-slider-bg",
+        "settings-slider-fill",
+        "settings-slider-focus",
+        "settings-knob",
+        "settings-knob-focus",
+        "settings-dialog-bg",
+        "settings-dialog-button",
+        "settings-dialog-button-focus",
+        "settings-off",
     ];
     pub fn insert(&mut self, name: &str, bitmap: Bitmap) {
         self.0.insert(name.to_owned(), bitmap);
@@ -100,5 +139,27 @@ mod tests {
         assert!(Bitmap::decode(&data).is_none());
         data.extend([255, 0, 0, 255]);
         assert_eq!(Bitmap::decode(&data).unwrap().size(), (1, 1));
+    }
+    #[test]
+    fn preview_adjustment_preserves_alpha_and_crop_keeps_row_stride() {
+        let original = Bitmap {
+            width: 2,
+            height: 2,
+            rgba: vec![
+                10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160,
+            ],
+        };
+        assert_eq!(original.adjusted(0, 0).rgba, original.rgba);
+        let changed = original.adjusted(5, 5);
+        assert_eq!(changed.rgba[3], 40);
+        assert_eq!(changed.rgba[15], 160);
+        assert_ne!(changed.rgba, original.rgba);
+        let crop = original.left_portion(1).unwrap();
+        assert_eq!(crop.rgba, vec![10, 20, 30, 40, 90, 100, 110, 120]);
+        assert!(original.left_portion(0).is_none());
+        assert_eq!(
+            original.left_portion(usize::MAX).unwrap().rgba,
+            original.rgba
+        );
     }
 }

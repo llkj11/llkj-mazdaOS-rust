@@ -29,10 +29,11 @@ error. A catalogued screen does not imply its routing, layout or behavior works.
 
 - Home: final static artwork states, five categories and basic routing ported.
   Focus/activation transitions and complete touch event timing remain.
-- Settings: correct the initial Display skeleton to the original image header and
-  three-row viewport; implement mode choices, bounded sliders, screen-off/clock,
-  reset confirmation and host-state behavior. Then use the same control engine
-  for all roots, submenus, dialogs and dynamic equipment variants.
+- Settings Display: source image/header and three-row viewport restored; mode choices,
+  -5..5 sliders with keyboard/pointer drag, screen-off/clock, wake and No/Yes reset
+  implemented in host state. Unit/render checks pass; native verification recorded
+  in the validation log. Other roots, submenus, dialogs and equipment variants
+  remain required. The 192-context ledger above is not completed by this component.
 - Remaining domains: media/phone/application/navigation context conversion and
   simulated behavior still pending; preserve original routes and artwork.
 - Runtime/device boundary: follow [the CMU deployment plan](CMU_DEPLOYMENT_PLAN.md).

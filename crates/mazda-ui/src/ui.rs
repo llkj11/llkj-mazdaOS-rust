@@ -1,6 +1,7 @@
 //! Native port of the owner's NA 70.00.100A home/menu geometry.
 //! Source mapping is documented in `docs/STOCK_UI_PORT.md`. No firmware JS executes.
-use crate::{fit_text, text_width, Color, Renderer, StockAssets};
+use crate::settings::DisplaySession;
+use crate::{fit_text, text_width, Color, DisplayPower, DisplayPreferences, Renderer, StockAssets};
 use mazda_core::{CommanderEvent, MazdaReadOnly, MediaState, VehicleSnapshot};
 use std::sync::Arc;
 
@@ -77,7 +78,7 @@ const SETTINGS: [&str; 8] = [
 const DISPLAY: [&str; 6] = [
     "Turn Display Off",
     "Turn Display Off and Show Clock",
-    "Mode",
+    "System",
     "Brightness",
     "Contrast",
     "Reset",
@@ -94,6 +95,7 @@ pub struct UiModel {
     settings_rows: bool,
     settings_tab: usize,
     notice: Option<&'static str>,
+    display: DisplaySession,
 }
 impl UiModel {
     #[must_use]
@@ -108,6 +110,7 @@ impl UiModel {
             settings_rows: false,
             settings_tab: 1,
             notice: None,
+            display: DisplaySession::default(),
         }
     }
     pub fn set_assets(&mut self, assets: StockAssets) {
@@ -116,6 +119,11 @@ impl UiModel {
     pub fn refresh(&mut self, source: &impl MazdaReadOnly) {
         self.vehicle = source.vehicle_snapshot();
         self.media = source.media_state();
+        if !self.vehicle.is_confirmed_parked() {
+            self.display.cancel_interaction();
+        } else if self.notice == Some("Preferences locked: valid zero speed and Park required") {
+            self.notice = None;
+        }
     }
     #[must_use]
     pub const fn screen(&self) -> Screen {
@@ -134,7 +142,30 @@ impl UiModel {
         self.notice
     }
 
+    #[must_use]
+    pub const fn display_preferences(&self) -> DisplayPreferences {
+        self.display.values
+    }
+    #[must_use]
+    pub const fn display_adjusting(&self) -> bool {
+        self.display.editing.is_some()
+    }
+    pub fn handle_pointer_drag(&mut self, x: usize, _y: usize) {
+        if self.display.pointer_drag {
+            if let Some(row) = self.display.editing {
+                self.display
+                    .pointer_value(row, x, self.vehicle.is_confirmed_parked());
+            }
+        }
+    }
+    pub fn handle_pointer_release(&mut self) {
+        if self.display.pointer_drag {
+            self.display.editing = None;
+            self.display.pointer_drag = false;
+        }
+    }
     fn open(&mut self, screen: Screen) {
+        self.display.cancel_interaction();
         self.screen = screen;
         self.row = 0;
         self.settings_rows = false;
@@ -157,14 +188,39 @@ impl UiModel {
         }
     }
     fn first_visible_row(&self) -> usize {
-        self.row.saturating_sub(if self.screen == Screen::Settings {
-            4
-        } else {
-            5
-        })
+        self.row.saturating_sub(
+            if self.screen == Screen::Settings && self.settings_tab == 1 {
+                2
+            } else if self.screen == Screen::Settings {
+                4
+            } else {
+                5
+            },
+        )
     }
     pub fn handle_commander(&mut self, event: CommanderEvent) -> Option<MediaIntent> {
         self.notice = None;
+        if self.display.values.power != DisplayPower::On {
+            self.display.values.power = DisplayPower::On;
+            if event == CommanderEvent::Home {
+                self.open(Screen::Home);
+            }
+            return None;
+        }
+        if self.screen == Screen::Settings
+            && !matches!(
+                event,
+                CommanderEvent::Home
+                    | CommanderEvent::Music
+                    | CommanderEvent::Navigation
+                    | CommanderEvent::Favorites
+            )
+            && self
+                .display
+                .active_event(event, self.vehicle.is_confirmed_parked())
+        {
+            return None;
+        }
         match event {
             CommanderEvent::Home => {
                 self.open(Screen::Home);
@@ -228,18 +284,31 @@ impl UiModel {
                 self.row = self.row.saturating_sub(1);
             }
             if event == CommanderEvent::Select {
-                self.notice = Some(
-                    if self.screen == Screen::Settings && !self.vehicle.is_confirmed_parked() {
-                        "Preferences locked: valid zero speed and Park required"
-                    } else {
-                        "Menu restored; service is not connected in this host preview"
-                    },
-                );
+                if self.screen == Screen::Settings && self.settings_tab == 1 {
+                    self.notice = self
+                        .display
+                        .select(self.row, self.vehicle.is_confirmed_parked());
+                } else {
+                    self.notice =
+                        Some("Menu restored; service is not connected in this host preview");
+                }
             }
         }
         None
     }
     pub fn handle_pointer(&mut self, x: usize, y: usize) -> Option<MediaIntent> {
+        if self.display.values.power != DisplayPower::On {
+            self.display.values.power = DisplayPower::On;
+            return None;
+        }
+        if self.screen == Screen::Settings && self.display.reset.is_some() {
+            if (382..462).contains(&y) && (69..731).contains(&x) {
+                self.display.reset = Some(x >= 401);
+                self.display
+                    .active_event(CommanderEvent::Select, self.vehicle.is_confirmed_parked());
+            }
+            return None;
+        }
         if self.screen != Screen::Home && x < 59 && y < 64 {
             self.open(Screen::Home);
             return None;
@@ -279,19 +348,21 @@ impl UiModel {
                     return None;
                 }
             }
-        } else if self.screen == Screen::Settings && (80..142).contains(&y) {
+        } else if self.screen == Screen::Settings && (72..134).contains(&y) {
             let start = self.settings_tab.saturating_sub(1).min(4);
-            if (64..148).contains(&x) {
+            if (52..136).contains(&x) {
                 self.settings_tab = self.settings_tab.saturating_sub(1);
-            } else if (720..800).contains(&x) {
+            } else if (708..794).contains(&x) {
                 self.settings_tab = (self.settings_tab + 1).min(7);
-            } else if (148..720).contains(&x) {
-                self.settings_tab = (start + (x - 148) / 143).min(7);
+            } else if (136..708).contains(&x) {
+                self.settings_tab = (start + (x - 136) / 143).min(7);
             }
             self.settings_rows = false;
         } else if !self.rows().is_empty() && (68..800).contains(&x) {
-            let top = if self.screen == Screen::Settings {
-                144
+            let top = if self.screen == Screen::Settings && self.settings_tab == 1 {
+                256
+            } else if self.screen == Screen::Settings {
+                133
             } else {
                 64
             };
@@ -302,6 +373,14 @@ impl UiModel {
                     self.row = row;
                     if self.screen == Screen::Settings {
                         self.settings_rows = true;
+                        if self.settings_tab == 1
+                            && ((row == 2 && (384..738).contains(&x))
+                                || ((row == 3 || row == 4) && (389..735).contains(&x)))
+                        {
+                            self.display
+                                .pointer_value(row, x, self.vehicle.is_confirmed_parked());
+                            return None;
+                        }
                     }
                     return self.handle_commander(CommanderEvent::Select);
                 }
@@ -311,11 +390,22 @@ impl UiModel {
     }
     pub fn render(&self, renderer: &mut impl Renderer) {
         renderer.clear(Color::BLACK);
-        self.image(renderer, "background", (0, 0, 800, 480));
-        if self.screen == Screen::Home {
-            self.render_home(renderer);
+        if self.display.values.power != DisplayPower::On {
+            self.image(renderer, "settings-off", (0, 0, 800, 480));
+            if self.display.values.power == DisplayPower::Clock {
+                renderer.text(788 - text_width("12:00", 38), 8, "12:00", 38, Color::TEXT);
+            }
+            return;
+        }
+        if self.screen == Screen::Settings && self.display.reset.is_some() {
+            self.render_display_reset(renderer);
         } else {
-            self.render_page(renderer);
+            self.image(renderer, "background", (0, 0, 800, 480));
+            if self.screen == Screen::Home {
+                self.render_home(renderer);
+            } else {
+                self.render_page(renderer);
+            }
         }
         self.image(renderer, "status", (0, 0, 800, 64));
         if self.screen != Screen::Home {
@@ -433,6 +523,146 @@ impl UiModel {
             r.text(x, 440, "---", 30, Color::TEXT);
         }
     }
+    fn render_display(&self, r: &mut impl Renderer) {
+        if let Some(bitmap) = self.assets.get("settings-test") {
+            let preview =
+                bitmap.adjusted(self.display.values.brightness, self.display.values.contrast);
+            r.image(69, 136, 713, 118, &preview);
+        }
+        let color = if self.vehicle.is_confirmed_parked() {
+            Color::TEXT
+        } else {
+            Color::rgb(146, 148, 151)
+        };
+        let first = self.first_visible_row();
+        for (visible, (index, label)) in DISPLAY.iter().enumerate().skip(first).enumerate() {
+            let y = 256 + visible * 64;
+            if y >= 480 {
+                break;
+            }
+            if index == self.row && self.settings_rows {
+                self.image(
+                    r,
+                    "list-focus",
+                    (68, i32::try_from(y).unwrap_or(0), 732, 64),
+                );
+            }
+            self.image(
+                r,
+                "list-separator",
+                (68, i32::try_from(y + 62).unwrap_or(0), 732, 2),
+            );
+            fitted(
+                r,
+                139,
+                y + 14,
+                label,
+                if index == 2 || index == 3 || index == 4 {
+                    241
+                } else {
+                    605
+                },
+                28,
+                color,
+            );
+            if index == 2 {
+                for (button, label) in ["Auto", "Day", "Night"].into_iter().enumerate() {
+                    let x = 384 + button * 118;
+                    self.image_natural(
+                        r,
+                        if button == self.display.values.mode.index() {
+                            "settings-inline-selected"
+                        } else {
+                            "settings-inline"
+                        },
+                        i32::try_from(x).unwrap_or(0) - 1,
+                        i32::try_from(y + 9).unwrap_or(0),
+                    );
+                    r.text(
+                        x + (118 - text_width(label, 28)) / 2,
+                        y + 16,
+                        label,
+                        28,
+                        color,
+                    );
+                }
+            } else if index == 3 || index == 4 {
+                self.render_display_slider(r, index, y, color);
+            }
+        }
+    }
+    fn render_display_slider(&self, r: &mut impl Renderer, index: usize, y: usize, color: Color) {
+        let value = if index == 3 {
+            self.display.values.brightness
+        } else {
+            self.display.values.contrast
+        };
+        let active = self.display.editing == Some(index);
+        let filled = usize::try_from(i16::from(value) + 5).unwrap_or(0) * 344 / 10;
+        self.image_natural(
+            r,
+            "settings-slider-bg",
+            389,
+            i32::try_from(y + 35).unwrap_or(0),
+        );
+        if let Some(bitmap) = self.assets.get(if active {
+            "settings-slider-focus"
+        } else {
+            "settings-slider-fill"
+        }) {
+            if let Some(portion) = bitmap.left_portion(filled) {
+                let (w, h) = portion.size();
+                r.image(390, i32::try_from(y + 37).unwrap_or(0), w, h, &portion);
+            }
+        }
+        let center = 390 + i32::try_from(filled).unwrap_or(0);
+        self.image_natural(
+            r,
+            if active {
+                "settings-knob-focus"
+            } else {
+                "settings-knob"
+            },
+            center - if active { 22 } else { 11 },
+            i32::try_from(y + 42).unwrap_or(0) - if active { 22 } else { 11 },
+        );
+        r.text(389, y + 1, "-", 18, color);
+        r.text(556, y + 1, "0", 18, color);
+        r.text(727, y + 1, "+", 18, color);
+    }
+    fn render_display_reset(&self, r: &mut impl Renderer) {
+        self.image(r, "settings-dialog-bg", (0, 0, 800, 480));
+        centered_lines(
+            r,
+            "Are you sure you want to restore Display settings to the factory defaults?",
+            77,
+            150,
+            646,
+            35,
+            42,
+        );
+        for (index, label) in ["No", "Yes"].into_iter().enumerate() {
+            let x = 69 + index * 332;
+            let focused = self.display.reset == Some(index == 1);
+            self.image_natural(
+                r,
+                if focused {
+                    "settings-dialog-button-focus"
+                } else {
+                    "settings-dialog-button"
+                },
+                i32::try_from(x).unwrap_or(0),
+                382,
+            );
+            r.text(
+                x + (330 - text_width(label, 35)) / 2,
+                400,
+                label,
+                35,
+                Color::TEXT,
+            );
+        }
+    }
     fn render_page(&self, r: &mut impl Renderer) {
         if self.screen == Screen::Navigation {
             self.render_compass(r);
@@ -440,11 +670,11 @@ impl UiModel {
         }
         self.image(r, "list-background", (68, 64, 732, 416));
         if self.screen == Screen::Settings {
-            self.image_natural(r, "tab-prev", 64, 80);
-            self.image_natural(r, "tab-next", 720, 80);
+            self.image_natural(r, "tab-prev", 52, 72);
+            self.image_natural(r, "tab-next", 708, 72);
             let start = self.settings_tab.saturating_sub(1).min(4);
             for (column, index) in (start..start + 4).enumerate() {
-                let x = 148 + column * 143;
+                let x = 136 + column * 143;
                 self.image(
                     r,
                     if index == self.settings_tab {
@@ -452,20 +682,21 @@ impl UiModel {
                     } else {
                         "tab"
                     },
-                    (i32::try_from(x).expect("tab coordinate"), 82, 143, 60),
+                    (i32::try_from(x).expect("tab coordinate"), 74, 143, 60),
                 );
                 let (label, size) = fit_text(SETTINGS[index], 131, 30);
                 r.text(
                     x + (143 - text_width(&label, size)) / 2,
-                    94,
+                    86,
                     &label,
                     size,
                     Color::TEXT,
                 );
             }
-            if self.settings_tab != 1 {
-                return;
+            if self.settings_tab == 1 {
+                self.render_display(r);
             }
+            return;
         }
         let top = if self.screen == Screen::Settings {
             144
@@ -475,7 +706,7 @@ impl UiModel {
         let first = self.first_visible_row();
         for (visible, (index, label)) in self.rows().iter().enumerate().skip(first).enumerate() {
             let y = top + visible * 64;
-            if y + 64 > 480 {
+            if y >= 480 {
                 break;
             }
             if index == self.row && (self.screen != Screen::Settings || self.settings_rows) {
@@ -510,6 +741,46 @@ fn fitted(
 ) {
     let (label, size) = fit_text(text, width, size);
     r.text(x, y, &label, size, color);
+}
+
+fn centered_lines(
+    r: &mut impl Renderer,
+    text: &str,
+    x: usize,
+    y: usize,
+    width: usize,
+    size: usize,
+    line_height: usize,
+) {
+    let mut line = String::new();
+    let mut row = 0;
+    for word in text.split_whitespace() {
+        let candidate = if line.is_empty() {
+            word.to_owned()
+        } else {
+            format!("{line} {word}")
+        };
+        if text_width(&candidate, size) > width && !line.is_empty() {
+            r.text(
+                x + (width - text_width(&line, size)) / 2,
+                y + row * line_height,
+                &line,
+                size,
+                Color::TEXT,
+            );
+            row += 1;
+            word.clone_into(&mut line);
+        } else {
+            line = candidate;
+        }
+    }
+    r.text(
+        x + (width - text_width(&line, size)) / 2,
+        y + row * line_height,
+        &line,
+        size,
+        Color::TEXT,
+    );
 }
 
 #[cfg(test)]
@@ -617,9 +888,42 @@ mod tests {
             ui.handle_commander(CommanderEvent::RotateClockwise);
         }
         assert_eq!(ui.rows()[ui.row], "Reset");
-        assert_eq!(ui.first_visible_row(), 1);
+        assert_eq!(ui.first_visible_row(), 3);
         ui.handle_commander(CommanderEvent::Back);
         assert_eq!(ui.screen(), Screen::Settings);
         assert!(!ui.settings_rows);
+    }
+    #[test]
+    fn display_pointer_drag_wakes_and_reset_routes_keep_observations_read_only() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_pointer(700, 410);
+        assert_eq!(ui.display_preferences().mode, crate::DisplayMode::Night);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_pointer(560, 420);
+        ui.handle_pointer_drag(733, 420);
+        ui.handle_pointer_release();
+        assert_eq!(ui.display_preferences().brightness, 5);
+        assert!(!ui.display_adjusting());
+        assert_eq!(ui.row, 3);
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.display.reset, Some(false));
+        ui.handle_pointer(570, 420);
+        assert_eq!(ui.display_preferences(), DisplayPreferences::default());
+        for _ in 0..4 {
+            ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.display_preferences().power, DisplayPower::Clock);
+        ui.handle_pointer(700, 410);
+        assert_eq!(ui.display_preferences().power, DisplayPower::On);
+        assert_eq!(ui.display_preferences().mode, crate::DisplayMode::Auto);
+        assert_eq!(ui.vehicle, Fixture.vehicle_snapshot());
     }
 }

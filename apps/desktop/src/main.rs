@@ -72,6 +72,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ui.refresh(&mazda);
             }
         }
+        if pointer_down && pointer_was_down {
+            if let Some((x, y)) = window.get_mouse_pos(MouseMode::Discard) {
+                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                ui.handle_pointer_drag(x as usize, y as usize);
+            }
+        }
+        if !pointer_down && pointer_was_down {
+            ui.handle_pointer_release();
+        }
         pointer_was_down = pointer_down;
 
         if last_source_refresh.elapsed() >= SOURCE_REFRESH_INTERVAL {
@@ -186,6 +195,9 @@ mod tests {
         assert!(ui.notice().unwrap().contains("locked"));
         assert!(!mock.vehicle_snapshot().is_confirmed_parked());
         assert_eq!(scenario_key(Key::Key3), Some(DemoScenario::Unavailable));
+        mock.set_scenario(DemoScenario::Parked);
+        ui.refresh(&mock);
+        assert_eq!(ui.notice(), None);
     }
 
     #[test]

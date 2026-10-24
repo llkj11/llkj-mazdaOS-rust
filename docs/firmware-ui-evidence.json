@@ -232,6 +232,101 @@
       "path": "jci/fonts/TipperarySemibold.ttf",
       "bytes": 171520,
       "sha256": "615f9993a23175e867cf20f3be8ae50f604857775b338bfa2b81cd4c6330bb23"
+    },
+    {
+      "path": "jci/gui/apps/syssettings/images/SettingsTestImage.png",
+      "bytes": 151406,
+      "sha256": "6f0b3e55a53de00e81e80d2b7d74cb22446b97c0a15301705f0c1144d91876e9"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/InLineButton.png",
+      "bytes": 622,
+      "sha256": "33a7af4ae2564eef4a41a98e527efeba1e38381426053e7b633055be4d0f81d3"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/InLineButton_Selected.png",
+      "bytes": 3515,
+      "sha256": "7052e6ccb8665bc4c22282014709a2ffbb66478500f16f70c6fa1c4e47b66531"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_SliderBG-1.png",
+      "bytes": 195,
+      "sha256": "05461d8b80ed7cf51b6cc0f9ac8855040dcc5ecee8688a8da3d549fcff996904"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider-1.png",
+      "bytes": 184,
+      "sha256": "24ebd3677cf2443ba9a1c1d9f441db44f0610fed4598cb0e1b87ae394ea4df68"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider_Focus-1.png",
+      "bytes": 182,
+      "sha256": "0845209f07050b205d2c48473ad0d3243cfe95886e88fd9633bcbca476bb0f1a"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider_Knob.png",
+      "bytes": 953,
+      "sha256": "4cb9c398391d307bbf4c0d7b5fdc2ad5d331caa983fa342bcd7780ba6d893a96"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider_KnobFocus-1.png",
+      "bytes": 3332,
+      "sha256": "5367b568895f9a13d31546cd5b77d877de34d5a2430b27d44b073f517a9640bb"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/DialogBG_Style02.png",
+      "bytes": 3686,
+      "sha256": "5b553f7e62f98812d42d2726eba67f2a2e8d3cab94786a0616f6d64b187154e0"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_2Btn.png",
+      "bytes": 984,
+      "sha256": "5e5803f923228597c59f2138571ae271b5b9debc8aa5e909a901bb6b39ba6147"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_2Btn_Focus.png",
+      "bytes": 16762,
+      "sha256": "5211c06edb250957580bf0098243519bf61638993e667fa80aea0781b192f6a8"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/OffScreen/images/OffScreenBackground.png",
+      "bytes": 9012,
+      "sha256": "e0fbbf2a1ed0895ec422bc15d10d8c572dd8023e85541e464ab4ac1ea7aefb3a"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/js/List2Ctrl.js",
+      "bytes": 475746,
+      "sha256": "52195d55c6615b9d61e9b25f48f90382e8ebe671edb154daa08d8915eca6f96f"
+    },
+    {
+      "path": "jci/gui/common/controls/Slider/js/SliderCtrl.js",
+      "bytes": 66579,
+      "sha256": "b908394e4ae805b3569e039caf2effd18e06b5995285a162313a91348f0cf40a"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/js/Dialog3Ctrl.js",
+      "bytes": 63846,
+      "sha256": "3538e318126eb0e73d7bd9cdf843ce47095ed1d775928ddef3108f18b6291a54"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/css/Dialog3Ctrl.css",
+      "bytes": 32198,
+      "sha256": "0de050a4ab45875f8a0f15caadbe5866a0613a92c1e4bec69764ac900f83305e"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/OffScreen/js/OffScreenCtrl.js",
+      "bytes": 4042,
+      "sha256": "f5c476f18ebbd1a2563e20f7633199108a3e82dbce9f9ad2669f0b149927d58f"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/OffScreen/css/OffScreenCtrl.css",
+      "bytes": 220,
+      "sha256": "e7df77deaf4134f86c9f31a112b86362c93fdb9d6602e2e20213cc39458203f8"
+    },
+    {
+      "path": "jci/gui/resources/js/syssettings/syssettingsAppDict_en_US.js",
+      "bytes": 16973,
+      "sha256": "4134a26c5595b591856c5b067a9e678ecbdceef0cbad3fba1687ffdb1df1768d"
     }
   ]
 }
