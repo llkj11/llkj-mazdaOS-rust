@@ -184,3 +184,21 @@ libraries as data. ELF metadata, paths and hashes inform the plan; ARM libraries
 startup scripts were not executed. Their bytes remain local. Kernel 3.0.35/glibc
 2.11.1 and the OEM compositor/supervisor imply unresolved deployment work, not a
 claim that the host binary is car-compatible. No install/flash payload is created.
+
+## Sound controls and equipment fixtures
+
+The Sound port reads the original audiosettings declaration/callback text and
+List2/Slider CSS/JavaScript as data. Six additional PNGs (checks and slider ticks)
+were verified against the existing extraction's source hashes and decoded with
+the reviewed bounded converter. Firmware JavaScript/native programs were not run.
+The asset allowlist grows from 41 to 47. No crates, build dependencies, network
+client, shell invocation, credential reads or Docker component were added.
+
+Tone, balance, ALC/guidance and Bose checkbox changes are in-memory fixture values;
+they do not emit OEM messages or change real audio. Model and public-route tests
+cover limits, all three equipment profiles, guidance-service disablement, drag
+cancellation, Park revocation and unchanged media observations. A centered/mirrored
+crop helper handles original pivot artwork while preserving bounded row stride.
+CLI profile values are a fixed enum and invalid arguments fail before window run.
+VIN decoding used the official NHTSA endpoint only for the requested trim lookup;
+the VIN, mileage and screenshot are excluded from the source/docs/artwork upload.

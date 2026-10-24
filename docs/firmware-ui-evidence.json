@@ -327,6 +327,51 @@
       "path": "jci/gui/resources/js/syssettings/syssettingsAppDict_en_US.js",
       "bytes": 16973,
       "sha256": "4134a26c5595b591856c5b067a9e678ecbdceef0cbad3fba1687ffdb1df1768d"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Checked_En.png",
+      "bytes": 1312,
+      "sha256": "0ec0338d851a7925ae274bdc8304a7808daa039f1e17ff3c5332f1f32ec5f610"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Unchecked_En.png",
+      "bytes": 324,
+      "sha256": "7ea07754a1f77f7e1416faddd58fc27220a4141b16304894dfacc11677853d6d"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Checked_Ds.png",
+      "bytes": 1088,
+      "sha256": "9f275460f362a45662afe53469837fc379f50bfce0802eac5521abef669d1291"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Unchecked_Ds.png",
+      "bytes": 277,
+      "sha256": "6e534e4d919826268a545b87b7e66bb778063d5975be1bfafe280a05c9ff406c"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/List_SliderTick.png",
+      "bytes": 117,
+      "sha256": "c9a40aad0896db7769d2ededa2ba4cc038d5397aee6b5ec55337d97a0706f9da"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/List_SliderTickCtr.png",
+      "bytes": 113,
+      "sha256": "761fae0141eb28c16196e2d7d7fca2caacfda7fbd14b7c0a11d88243e3d34b11"
+    },
+    {
+      "path": "jci/gui/apps/audiosettings/js/audiosettingsApp.js",
+      "bytes": 50975,
+      "sha256": "857d980769b83a416df2af99ed0757d283ffdb58542c112988a861fda4ee9944"
+    },
+    {
+      "path": "jci/gui/resources/js/audiosettings/audiosettingsAppDict_en_US.js",
+      "bytes": 620,
+      "sha256": "8c3616ecf51ab99fc9aa907b553551d2e1e318f9e049d532261abdb0a05554b1"
+    },
+    {
+      "path": "jci/gui/common/controls/Slider/css/SliderCtrl.css",
+      "bytes": 1062,
+      "sha256": "2fef2d25e6bac43df693d055b437ae8a0bd706a5dde307d03d593d044b785fd7"
     }
   ]
 }

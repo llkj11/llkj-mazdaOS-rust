@@ -12,7 +12,7 @@ Static declaration extraction currently finds these contexts:
 | Firmware app | Declared contexts | Statically resolved list rows | Implementation status |
 | --- | ---: | ---: | --- |
 | syssettings | 28 | 115 | Catalogued; full native implementation and verification pending |
-| audiosettings | 1 | 0 | Catalogued; full native implementation and verification pending |
+| audiosettings | 1 | 0 | SoundTab host controls implemented for standard/Bose/Bose J12; real services, guidance SBN and detailed timing remain |
 | vehsettings | 81 | 176 | Catalogued; full native implementation and verification pending |
 | btpairing | 35 | 12 | Catalogued; full native implementation and verification pending |
 | netmgmt | 16 | 0 | Catalogued; full native implementation and verification pending |
@@ -39,6 +39,13 @@ error. A catalogued screen does not imply its routing, layout or behavior works.
 - Runtime/device boundary: follow [the CMU deployment plan](CMU_DEPLOYMENT_PLAN.md).
   ABI, native graphics/input, stock services, camera priority, fallback and an
   exact-car installation proposal remain unproven.
+- Settings Sound: source-defined rows, ranges, pivot/progress fills, ticks, labels,
+  checkboxes and disabled Guidance Volume are implemented in session state for
+  standard/Bose/Bose J12 profiles. The 2018 Touring host fixture defaults to
+  standard audio without HUD, based on factory equipment. This is not live
+  amplifier/equipment detection. Shared tab navigation now preserves directional
+  positioning and first-offscreen arrow jumps. Native/model checks are recorded
+  in the validation log; the full Settings objective remains active.
 
 ## Required proof before completion
 

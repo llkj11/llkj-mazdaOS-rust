@@ -4,7 +4,7 @@ mod assets;
 
 use mazda_core::CommanderEvent;
 use mazda_mock::{DemoScenario, MockMazda};
-use mazda_ui::{Framebuffer, MediaIntent, UiModel, DISPLAY_HEIGHT, DISPLAY_WIDTH};
+use mazda_ui::{Framebuffer, MediaIntent, SoundProfile, UiModel, DISPLAY_HEIGHT, DISPLAY_WIDTH};
 use minifb::{Key, KeyRepeat, MouseButton, MouseMode, Scale, Window, WindowOptions};
 
 const SOURCE_REFRESH_INTERVAL: Duration = Duration::from_millis(100);
@@ -12,6 +12,11 @@ const SOURCE_REFRESH_INTERVAL: Duration = Duration::from_millis(100);
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let smoke_test = std::env::args().any(|argument| argument == "--smoke-test");
     let arguments: Vec<_> = std::env::args_os().collect();
+    let audio_profile = parse_audio_profile(&arguments)?;
+    let base_title = format!(
+        "Mazda Connect - Firmware UI + Inter - {} audio fixture",
+        audio_profile.label()
+    );
     let explicit_assets = arguments
         .iter()
         .position(|arg| arg == "--assets")
@@ -30,9 +35,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut mazda = MockMazda::demo();
     let mut ui = UiModel::from_source(&mazda);
     ui.set_assets(artwork);
+    ui.set_sound_profile(audio_profile);
+    ui.set_hud_installed(arguments.iter().any(|arg| arg == "--hud"));
+    ui.set_guidance_available(!arguments.iter().any(|arg| arg == "--guidance-disabled"));
     let mut framebuffer = Framebuffer::mazda_connect();
     let mut window = Window::new(
-        "Mazda Connect - Firmware UI + Inter - Host Simulation",
+        &base_title,
         DISPLAY_WIDTH,
         DISPLAY_HEIGHT,
         WindowOptions {
@@ -89,7 +97,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         if ui.notice() != last_notice {
             window.set_title(&ui.notice().map_or_else(
-                || "Mazda Connect - Firmware UI + Inter - Host Simulation".to_owned(),
+                || base_title.clone(),
                 |notice| format!("Host Simulation — {notice}"),
             ));
             last_notice = ui.notice();
@@ -104,6 +112,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+fn parse_audio_profile(arguments: &[std::ffi::OsString]) -> Result<SoundProfile, &'static str> {
+    let Some(index) = arguments.iter().position(|arg| arg == "--audio-profile") else {
+        return Ok(SoundProfile::Standard);
+    };
+    match arguments.get(index + 1).and_then(|arg| arg.to_str()) {
+        Some("standard") => Ok(SoundProfile::Standard),
+        Some("bose") => Ok(SoundProfile::Bose),
+        Some("bose-j12") => Ok(SoundProfile::BoseJ12),
+        _ => Err("--audio-profile requires standard, bose or bose-j12"),
+    }
 }
 
 fn handle_event(ui: &mut UiModel, mock: &mut MockMazda, event: CommanderEvent) {
@@ -198,6 +218,54 @@ mod tests {
         mock.set_scenario(DemoScenario::Parked);
         ui.refresh(&mock);
         assert_eq!(ui.notice(), None);
+    }
+    #[test]
+    fn driving_revokes_sound_editing_without_touching_source_observations() {
+        let mut mock = MockMazda::demo();
+        let media = mock.media_state();
+        let mut ui = UiModel::from_source(&mock);
+        for _ in 0..2 {
+            handle_event(&mut ui, &mut mock, CommanderEvent::RotateClockwise);
+        }
+        handle_event(&mut ui, &mut mock, CommanderEvent::Select);
+        for _ in 0..2 {
+            handle_event(&mut ui, &mut mock, CommanderEvent::RotateClockwise);
+        }
+        handle_event(&mut ui, &mut mock, CommanderEvent::Select);
+        handle_event(&mut ui, &mut mock, CommanderEvent::Select);
+        handle_event(&mut ui, &mut mock, CommanderEvent::RotateClockwise);
+        assert_eq!(ui.sound_preferences().bass, 1);
+        mock.set_scenario(DemoScenario::Driving);
+        ui.refresh(&mock);
+        assert!(!ui.sound_adjusting());
+        let before = ui.sound_preferences();
+        handle_event(&mut ui, &mut mock, CommanderEvent::Select);
+        assert_eq!(ui.sound_preferences(), before);
+        assert!(ui.notice().unwrap().contains("locked"));
+        assert_eq!(mock.media_state(), media);
+    }
+    #[test]
+    fn equipment_arguments_are_explicit_and_invalid_profiles_fail() {
+        let args = |items: &[&str]| {
+            items
+                .iter()
+                .map(std::ffi::OsString::from)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(
+            super::parse_audio_profile(&args(&[])),
+            Ok(mazda_ui::SoundProfile::Standard)
+        );
+        assert_eq!(
+            super::parse_audio_profile(&args(&["--audio-profile", "bose"])),
+            Ok(mazda_ui::SoundProfile::Bose)
+        );
+        assert_eq!(
+            super::parse_audio_profile(&args(&["--audio-profile", "bose-j12"])),
+            Ok(mazda_ui::SoundProfile::BoseJ12)
+        );
+        assert!(super::parse_audio_profile(&args(&["--audio-profile"])).is_err());
+        assert!(super::parse_audio_profile(&args(&["--audio-profile", "typo"])).is_err());
     }
 
     #[test]

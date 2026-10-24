@@ -69,6 +69,19 @@ stock HMI present and recoverable. Persistence comes only after the earlier gate
 are proven and a separate installation proposal is approved. The final installed
 form is intended to be a native userland frontend, not a replacement ECU firmware.
 
+## Factory equipment evidence for the host fixture
+
+The owner's VIN was checked through NHTSA's official decoder and identifies a
+2018 Mazda6 Touring, 2.5L/187 hp. The VIN and personal screenshot are not retained
+in this repository. Mazda's [2018 model information](https://news.mazdausa.com/2018-03-15-2018-mazda6-premium-performance-design-heighten-appeal)
+and [specification deck](https://news.mazdausa.com/download/2018-Mazda6-Spec-Deck_Version-3.pdf)
+establish the US Touring's standard six-speaker audio. Bose starts at Grand Touring;
+the factory Active Driving Display starts at Grand Touring Reserve. Accordingly,
+the default host fixture uses standard audio and no HUD. Explicit alternative
+fixtures remain available. This factory-equipment inference does not verify
+aftermarket changes, the installed CMU/firmware identity, current service payloads
+or any runtime ABI; gate 2 is still incomplete.
+
 ## Boundaries that remain in force
 
 No powertrain, steering, braking, restraints, CAN/LIN or VIP MCU write capability is

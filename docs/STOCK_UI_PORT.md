@@ -17,7 +17,7 @@ not implemented; the importer pins the exact reviewed package SHA-256.
 
 The local extraction contains **4,499 GUI files and 58 fonts**. The complete local
 inventory records path, byte count and SHA-256 for every extracted regular file.
-A small decoder converts **41 original PNGs** into bounded RGBA images for Rust.
+A small decoder converts **47 original PNGs** into bounded RGBA images for Rust.
 The three Compass mask images apply the firmware CSS's 0.29 opacity to represent
 its invalid-position state. Other artwork is neither redrawn nor recolored.
 [Selected source identities](firmware-ui-evidence.json) record the inputs used.
@@ -31,7 +31,8 @@ its invalid-position state. Other artwork is neither redrawn nor recolored.
 | `common/controls/StatusBar/css/StatusBarCtrl.css` | Status artwork, category title, Home icon and right-aligned clock |
 | `apps/system/js/systemApp.js` and its English dictionary | Original five destination events and visible root-menu item order |
 | `common/controls/List2/css/List2Ctrl.css` | Original list background, red focus art, separators, 64px rows and text column |
-| `apps/syssettings/js/syssettingsApp.js`, `common/controls/Tabs/*` | Original eight settings tabs, four visible at once, original Display row labels |
+| `apps/syssettings/js/syssettingsApp.js`, `common/controls/Tabs/*` | Original conditional seven/eight settings tabs, four visible at once, directional tab position/history and offscreen arrow jumps |
+| `apps/audiosettings/js/audiosettingsApp.js`, English dictionary, List2/Slider controls | Standard/Bose/Bose J12 row order, control ranges/defaults, tick/label/pivot behavior, checkboxes and Guidance Volume enable state |
 | `apps/emnavi/controls/Compass/*`, `apps/emnavi/js/emnaviApp.js`, English dictionary | Original Compass fallback, background/rail, unavailable position fields, no-navigation explanation |
 
 Home uses the original normal/focused coin images, original background and
@@ -58,6 +59,9 @@ python3 tools/import-firmware-ui.py /path/to/cmu150_NA_70.00.100A_reinstall.up t
 cargo run --locked -p mazda-desktop
 # Or point at an existing local conversion:
 cargo run --locked -p mazda-desktop -- --assets /path/to/render-assets
+# Explicit equipment/service fixtures; no real amplifier or HUD is detected:
+cargo run --locked -p mazda-desktop -- --audio-profile bose
+cargo run --locked -p mazda-desktop -- --audio-profile bose-j12 --hud --guidance-disabled
 ```
 
 The destination must be empty, and the firmware must match the pinned hash. Files
@@ -83,7 +87,7 @@ No Docker components or container rebuilds are involved.
 ## Controls
 
 - Arrows: rotate through the five home choices; stop at either end.
-- Enter/Space: open a category; enter Display rows; cycle a mode or enter/leave slider adjustment.
+- Enter/Space: open a category; enter Display/Sound rows; cycle a mode, toggle a checkbox or enter/leave slider adjustment.
 - Backspace: leave slider adjustment or cancel reset; leave rows for tabs, then return Home.
 - H: Home. M: Entertainment. N: Navigation/Compass fallback.
 - F: reports that the Favorites service is disconnected; it does not open Settings.
@@ -108,9 +112,29 @@ host state only. The preview image responds to slider changes using an approxima
 software tone curve; it does not set the Mac backlight or reproduce OEM calibration.
 Pointer sliders support dragging; Enter enters/leaves knob adjustment. Reset starts
 on No; Yes restores Display defaults only. Any input wakes the display without
-activating the covered control. Other Settings tabs and deeper contexts still need
+activating the covered control. Remaining Settings tabs and deeper contexts still need
 conversion. Invalid/moving/non-Park observations revoke ongoing editing/confirmation
 and cannot authorize preference changes.
+
+Sound now uses its original 64px rows below the tab header at y=133, with five full
+rows and the clipped next row. Standard audio has Bass/Treble (-6..6), Fade/Balance
+(-8..8), ALC (0..7), Guidance Volume (0..63) and Beep. Bose substitutes Centerpoint
+and AudioPilot for ALC; the J12 variant omits Centerpoint. NA English strings retain
+the registered marks. Bass/Treble/Fade/Balance fills extend from the midpoint;
+ALC/Guidance fill from the start. Source tick marks, center marks, end labels and
+enabled/disabled checkbox artwork are imported without executing firmware code.
+The local raw render set now contains 47 images. Existing local imports need the
+six additional listed PNG conversions or a new import into an empty directory.
+
+All Sound values are host-session state; there is no audible output, amplifier,
+navigation prompt or OEM-setting write. The firmware's Guidance Volume message
+mapping subtracts one for positive status values; actual service mapping and the
+associated SBN/prompt are not ported. The host applies its conservative Park gate
+to Sound edits too; this is not proof of identical OEM permission policy. Missing
+guidance-service availability independently disables that row and revokes editing.
+The default equipment fixture is standard audio/no HUD, appropriate to the factory
+2018 US Touring configuration; runtime equipment detection remains future work.
+Changing test profiles cancels interaction and keeps values only in memory.
 The Compass is explicitly the firmware's **no-navigation host fixture**; its text
 is not a claim about whether the owner's actual car has navigation. It displays
 unavailable coordinates and a dimmed direction mask. Maps/GPS are not connected.

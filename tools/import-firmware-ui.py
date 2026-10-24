@@ -17,6 +17,12 @@ import zlib
 PACKAGE_SHA256 = '5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0'
 GUI_PREFIX = 'jci/gui/'
 ASSETS = {
+    'settings-check': 'common/controls/List2/images/IcnListCheck_Checked_En.png',
+    'settings-uncheck': 'common/controls/List2/images/IcnListCheck_Unchecked_En.png',
+    'settings-check-disabled': 'common/controls/List2/images/IcnListCheck_Checked_Ds.png',
+    'settings-uncheck-disabled': 'common/controls/List2/images/IcnListCheck_Unchecked_Ds.png',
+    'settings-tick': 'common/controls/List2/images/List_SliderTick.png',
+    'settings-tick-center': 'common/controls/List2/images/List_SliderTickCtr.png',
     'settings-test': 'apps/syssettings/images/SettingsTestImage.png',
     'settings-inline': 'common/controls/List2/images/InLineButton.png',
     'settings-inline-selected': 'common/controls/List2/images/InLineButton_Selected.png',

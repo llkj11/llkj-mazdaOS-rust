@@ -104,3 +104,36 @@ an approximation, not an OEM calibration or a system-backlight change.
 
 The full 192-context Settings conversion, OEM services, exact firmware animation
 timing and car runtime remain incomplete. No Docker project applies.
+
+## Sound and factory Touring fixture, 2026-10-24
+
+The source-guided Sound increment adds the original standard/Bose/Bose J12 rows,
+bounded pivot/progress sliders, tone/ALC tick marks, labels and enabled/disabled
+checkbox art. The default host fixture is standard audio/no HUD, based on the
+factory US 2018 Touring equipment evidence in the deployment plan. This is not
+on-car equipment detection. Six additional PNGs were checked against the existing
+source inventory and decoded as data; 47 render assets are now required.
+
+- 41 Rust tests pass: core 3, desktop 6, mock 4, UI 28. Six importer and five
+  catalog parser tests pass. Formatting and strict all-targets Clippy pass.
+- New tests cover every slider range/end, centered pivots, profile row order and
+  feature exclusion, guidance availability, checkboxes, pointer drag release/tab
+  cancellation, edit revocation and unchanged media observations. Shared tab tests
+  establish no-HUD navigation, directional second/third positioning and first
+  off-screen arrow jumps. Center-cropped mirrored pixel rows are checked too.
+- Fifteen deterministic Sound renders exercise all three profiles, negative bass,
+  the last checkbox, unavailable guidance and the conservative driving fixture.
+  These are source-guided native renders, not an independently run Opera UI.
+- The live Mac preview opened Sound, adjusted Bass left of center, scrolled to the
+  final Beep row and checked it. Switching to the driving fixture preserved the
+  checkbox and blocked Enter, using the original disabled artwork/label colors.
+  Native pointer activation remains unverified despite model coverage.
+- The signed 0.6.0 package was independently extracted, signature checked and its
+  delivered executable compared byte-for-byte with the signed build. Three native
+  smoke runs (standard, Bose, Bose J12/HUD/guidance unavailable) each rendered 90
+  frames and exited 0. Final source changes require a fresh package check.
+
+No real tone, volume, speaker, prompt or OEM setting changed. The Sound host gate
+is conservative Park-only; exact OEM permission policy, service payload handling
+(including guidance-volume status adjustment), SBN/prompt timing, animations and
+touch-release timing remain incomplete. Full Settings conversion remains active.

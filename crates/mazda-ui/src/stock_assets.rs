@@ -56,6 +56,30 @@ impl Bitmap {
             rgba,
         })
     }
+    /// CSS centered background cropping, optionally mirrored for a left pivot fill.
+    pub(crate) fn centered_portion(&self, width: usize, mirrored: bool) -> Option<Self> {
+        let width = width.min(self.width);
+        if width == 0 {
+            return None;
+        }
+        let left = (self.width - width) / 2;
+        let mut rgba = Vec::with_capacity(width * self.height * 4);
+        for row in self.rgba.chunks_exact(self.width * 4) {
+            let region = &row[left * 4..(left + width) * 4];
+            if mirrored {
+                for pixel in region.as_chunks::<4>().0.iter().rev() {
+                    rgba.extend_from_slice(pixel);
+                }
+            } else {
+                rgba.extend_from_slice(region);
+            }
+        }
+        Some(Self {
+            width,
+            height: self.height,
+            rgba,
+        })
+    }
     #[must_use]
     pub const fn size(&self) -> (usize, usize) {
         (self.width, self.height)
@@ -65,7 +89,13 @@ impl Bitmap {
 #[derive(Debug, Clone, Default)]
 pub struct StockAssets(BTreeMap<String, Bitmap>);
 impl StockAssets {
-    pub const NAMES: [&'static str; 41] = [
+    pub const NAMES: [&'static str; 47] = [
+        "settings-check",
+        "settings-uncheck",
+        "settings-check-disabled",
+        "settings-uncheck-disabled",
+        "settings-tick",
+        "settings-tick-center",
         "compass-bg",
         "compass-foreground",
         "compass-rail",
@@ -161,5 +191,14 @@ mod tests {
             original.left_portion(usize::MAX).unwrap().rgba,
             original.rgba
         );
+        assert_eq!(
+            original.centered_portion(2, true).unwrap().rgba,
+            vec![50, 60, 70, 80, 10, 20, 30, 40, 130, 140, 150, 160, 90, 100, 110, 120]
+        );
+        assert_eq!(
+            original.centered_portion(1, false).unwrap().rgba,
+            vec![10, 20, 30, 40, 90, 100, 110, 120]
+        );
+        assert!(original.centered_portion(0, true).is_none());
     }
 }

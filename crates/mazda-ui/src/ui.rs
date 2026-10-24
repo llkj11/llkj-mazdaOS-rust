@@ -1,9 +1,15 @@
 //! Native port of the owner's NA 70.00.100A home/menu geometry.
 //! Source mapping is documented in `docs/STOCK_UI_PORT.md`. No firmware JS executes.
 use crate::settings::DisplaySession;
-use crate::{fit_text, text_width, Color, DisplayPower, DisplayPreferences, Renderer, StockAssets};
+use crate::sound::SoundSession;
+use crate::{
+    fit_text, text_width, Color, DisplayPower, DisplayPreferences, Renderer, SoundPreferences,
+    SoundProfile, StockAssets,
+};
 use mazda_core::{CommanderEvent, MazdaReadOnly, MediaState, VehicleSnapshot};
 use std::sync::Arc;
+#[path = "sound_ui.rs"]
+mod sound_ui;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MediaIntent {
@@ -83,6 +89,11 @@ const DISPLAY: [&str; 6] = [
     "Contrast",
     "Reset",
 ];
+#[derive(Debug, Clone, Copy)]
+enum TabFavor {
+    Second,
+    Third,
+}
 
 #[derive(Debug, Clone)]
 pub struct UiModel {
@@ -94,8 +105,11 @@ pub struct UiModel {
     media: MediaState,
     settings_rows: bool,
     settings_tab: usize,
+    hud_installed: bool,
+    tab_favor: TabFavor,
     notice: Option<&'static str>,
     display: DisplaySession,
+    sound: SoundSession,
 }
 impl UiModel {
     #[must_use]
@@ -109,8 +123,11 @@ impl UiModel {
             media: source.media_state(),
             settings_rows: false,
             settings_tab: 1,
+            hud_installed: false,
+            tab_favor: TabFavor::Second,
             notice: None,
             display: DisplaySession::default(),
+            sound: SoundSession::default(),
         }
     }
     pub fn set_assets(&mut self, assets: StockAssets) {
@@ -121,6 +138,7 @@ impl UiModel {
         self.media = source.media_state();
         if !self.vehicle.is_confirmed_parked() {
             self.display.cancel_interaction();
+            self.sound.cancel_interaction();
         } else if self.notice == Some("Preferences locked: valid zero speed and Park required") {
             self.notice = None;
         }
@@ -150,7 +168,107 @@ impl UiModel {
     pub const fn display_adjusting(&self) -> bool {
         self.display.editing.is_some()
     }
+    #[must_use]
+    pub const fn sound_preferences(&self) -> SoundPreferences {
+        self.sound.values
+    }
+    #[must_use]
+    pub const fn sound_profile(&self) -> SoundProfile {
+        self.sound.profile
+    }
+    #[must_use]
+    pub const fn sound_adjusting(&self) -> bool {
+        self.sound.editing.is_some()
+    }
+    pub fn set_sound_profile(&mut self, profile: SoundProfile) {
+        self.sound.cancel_interaction();
+        self.sound.profile = profile;
+        if self.screen == Screen::Settings && self.settings_tab == 3 {
+            self.row = 0;
+        }
+    }
+    pub fn set_guidance_available(&mut self, enabled: bool) {
+        self.sound.guidance_enabled = enabled;
+        if !enabled && self.sound.editing == Some(crate::SoundControl::Guidance) {
+            self.sound.cancel_interaction();
+        } else if self.notice == Some("Guidance Volume is disabled by the host service fixture") {
+            self.notice = None;
+        }
+    }
+    pub fn set_hud_installed(&mut self, installed: bool) {
+        self.hud_installed = installed;
+        if !installed && self.settings_tab == 0 {
+            self.settings_tab = 1;
+            self.settings_rows = false;
+            self.row = 0;
+        }
+    }
+    fn settings_tabs(&self) -> &'static [usize] {
+        if self.hud_installed {
+            &[0, 1, 2, 3, 4, 5, 6, 7]
+        } else {
+            &[1, 2, 3, 4, 5, 6, 7]
+        }
+    }
+    fn first_visible_tab(&self) -> usize {
+        self.settings_tabs()
+            .iter()
+            .position(|index| *index == self.settings_tab)
+            .unwrap_or(0)
+            .saturating_sub(match self.tab_favor {
+                TabFavor::Second => 1,
+                TabFavor::Third => 2,
+            })
+            .min(self.settings_tabs().len() - 4)
+    }
+    fn rotate_settings_tab(&mut self, forward: bool) {
+        self.tab_favor = if forward {
+            TabFavor::Third
+        } else {
+            TabFavor::Second
+        };
+        self.settings_tab = if forward {
+            (self.settings_tab + 1).min(7)
+        } else {
+            self.settings_tab
+                .saturating_sub(1)
+                .max(usize::from(!self.hud_installed))
+        };
+    }
+    fn pointer_settings_tab(&mut self, x: usize) {
+        self.display.cancel_interaction();
+        self.sound.cancel_interaction();
+        let start = self.first_visible_tab();
+        if (52..136).contains(&x) {
+            if start > 0 {
+                self.settings_tab = self.settings_tabs()[start - 1];
+                self.tab_favor = TabFavor::Third;
+            }
+        } else if (708..794).contains(&x) {
+            if start + 4 < self.settings_tabs().len() {
+                self.settings_tab = self.settings_tabs()[start + 4];
+                self.tab_favor = TabFavor::Second;
+            }
+        } else if (136..708).contains(&x) {
+            let target = self.settings_tabs()[start + (x - 136) / 143];
+            if target != self.settings_tab {
+                self.tab_favor = if target > self.settings_tab {
+                    TabFavor::Third
+                } else {
+                    TabFavor::Second
+                };
+            }
+            self.settings_tab = target;
+        }
+        self.settings_rows = false;
+    }
     pub fn handle_pointer_drag(&mut self, x: usize, _y: usize) {
+        if self.sound.pointer_drag {
+            if let Some(control) = self.sound.editing {
+                self.sound
+                    .pointer_value(control, x, self.vehicle.is_confirmed_parked());
+            }
+        }
         if self.display.pointer_drag {
             if let Some(row) = self.display.editing {
                 self.display
@@ -159,6 +277,9 @@ impl UiModel {
         }
     }
     pub fn handle_pointer_release(&mut self) {
+        if self.sound.pointer_drag {
+            self.sound.cancel_interaction();
+        }
         if self.display.pointer_drag {
             self.display.editing = None;
             self.display.pointer_drag = false;
@@ -166,6 +287,7 @@ impl UiModel {
     }
     fn open(&mut self, screen: Screen) {
         self.display.cancel_interaction();
+        self.sound.cancel_interaction();
         self.screen = screen;
         self.row = 0;
         self.settings_rows = false;
@@ -184,6 +306,7 @@ impl UiModel {
             Screen::Entertainment => &ENTERTAINMENT,
             Screen::Communication => &COMMUNICATION,
             Screen::Settings if self.settings_tab == 1 => &DISPLAY,
+            Screen::Settings if self.settings_tab == 3 => self.sound.profile.labels(),
             _ => &[],
         }
     }
@@ -215,9 +338,14 @@ impl UiModel {
                     | CommanderEvent::Navigation
                     | CommanderEvent::Favorites
             )
-            && self
-                .display
-                .active_event(event, self.vehicle.is_confirmed_parked())
+            && ((self.settings_tab == 1
+                && self
+                    .display
+                    .active_event(event, self.vehicle.is_confirmed_parked()))
+                || (self.settings_tab == 3
+                    && self
+                        .sound
+                        .active_event(event, self.vehicle.is_confirmed_parked())))
         {
             return None;
         }
@@ -263,17 +391,17 @@ impl UiModel {
             }
         } else if self.screen == Screen::Settings && !self.settings_rows {
             if clockwise {
-                self.settings_tab = (self.settings_tab + 1).min(7);
+                self.rotate_settings_tab(true);
             }
             if counterclockwise {
-                self.settings_tab = self.settings_tab.saturating_sub(1);
+                self.rotate_settings_tab(false);
             }
             if event == CommanderEvent::Select {
-                if self.settings_tab == 1 {
+                if self.rows().is_empty() {
+                    self.notice = Some("This settings tab has not been ported");
+                } else {
                     self.settings_rows = true;
                     self.row = 0;
-                } else {
-                    self.notice = Some("This settings tab has not been ported");
                 }
             }
         } else if !self.rows().is_empty() {
@@ -284,17 +412,21 @@ impl UiModel {
                 self.row = self.row.saturating_sub(1);
             }
             if event == CommanderEvent::Select {
-                if self.screen == Screen::Settings && self.settings_tab == 1 {
-                    self.notice = self
-                        .display
-                        .select(self.row, self.vehicle.is_confirmed_parked());
-                } else {
-                    self.notice =
-                        Some("Menu restored; service is not connected in this host preview");
-                }
+                self.select_row();
             }
         }
         None
+    }
+    fn select_row(&mut self) {
+        self.notice = match (self.screen, self.settings_tab) {
+            (Screen::Settings, 1) => self
+                .display
+                .select(self.row, self.vehicle.is_confirmed_parked()),
+            (Screen::Settings, 3) => self
+                .sound
+                .select(self.row, self.vehicle.is_confirmed_parked()),
+            _ => Some("Menu restored; service is not connected in this host preview"),
+        };
     }
     pub fn handle_pointer(&mut self, x: usize, y: usize) -> Option<MediaIntent> {
         if self.display.values.power != DisplayPower::On {
@@ -349,15 +481,7 @@ impl UiModel {
                 }
             }
         } else if self.screen == Screen::Settings && (72..134).contains(&y) {
-            let start = self.settings_tab.saturating_sub(1).min(4);
-            if (52..136).contains(&x) {
-                self.settings_tab = self.settings_tab.saturating_sub(1);
-            } else if (708..794).contains(&x) {
-                self.settings_tab = (self.settings_tab + 1).min(7);
-            } else if (136..708).contains(&x) {
-                self.settings_tab = (start + (x - 136) / 143).min(7);
-            }
-            self.settings_rows = false;
+            self.pointer_settings_tab(x);
         } else if !self.rows().is_empty() && (68..800).contains(&x) {
             let top = if self.screen == Screen::Settings && self.settings_tab == 1 {
                 256
@@ -373,6 +497,9 @@ impl UiModel {
                     self.row = row;
                     if self.screen == Screen::Settings {
                         self.settings_rows = true;
+                        if self.settings_tab == 3 && self.sound_pointer_slider(row, x) {
+                            return None;
+                        }
                         if self.settings_tab == 1
                             && ((row == 2 && (384..738).contains(&x))
                                 || ((row == 3 || row == 4) && (389..735).contains(&x)))
@@ -672,8 +799,8 @@ impl UiModel {
         if self.screen == Screen::Settings {
             self.image_natural(r, "tab-prev", 52, 72);
             self.image_natural(r, "tab-next", 708, 72);
-            let start = self.settings_tab.saturating_sub(1).min(4);
-            for (column, index) in (start..start + 4).enumerate() {
+            let start = self.first_visible_tab();
+            for (column, &index) in self.settings_tabs().iter().skip(start).take(4).enumerate() {
                 let x = 136 + column * 143;
                 self.image(
                     r,
@@ -695,6 +822,8 @@ impl UiModel {
             }
             if self.settings_tab == 1 {
                 self.render_display(r);
+            } else if self.settings_tab == 3 {
+                self.render_sound(r);
             }
             return;
         }
@@ -925,5 +1054,102 @@ mod tests {
         assert_eq!(ui.display_preferences().power, DisplayPower::On);
         assert_eq!(ui.display_preferences().mode, crate::DisplayMode::Auto);
         assert_eq!(ui.vehicle, Fixture.vehicle_snapshot());
+    }
+    #[test]
+    fn sound_rows_edit_scroll_and_return_through_the_original_tab_bar() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        assert_eq!(ui.settings_tab, 3);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        assert!(ui.sound_adjusting());
+        assert_eq!(ui.sound_preferences().bass, 1);
+        assert_eq!(ui.row, 0);
+        ui.handle_commander(CommanderEvent::Back);
+        assert!(ui.settings_rows);
+        assert!(!ui.sound_adjusting());
+        for _ in 0..20 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        assert_eq!(ui.rows()[ui.row], "Beep");
+        assert_eq!(ui.first_visible_row(), 2);
+        ui.handle_commander(CommanderEvent::Select);
+        assert!(ui.sound_preferences().beep);
+        ui.handle_commander(CommanderEvent::Back);
+        assert!(!ui.settings_rows);
+        assert_eq!(ui.settings_tab, 3);
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.screen(), Screen::Home);
+        assert_eq!(ui.selection(), Screen::Settings);
+        assert_eq!(ui.vehicle, Fixture.vehicle_snapshot());
+    }
+    #[test]
+    fn sound_drag_stays_on_its_control_and_tab_change_revokes_it() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 3;
+        ui.handle_pointer(400, 160);
+        ui.handle_pointer_drag(735, 160);
+        assert_eq!(ui.sound_preferences().bass, 6);
+        assert!(ui.sound_adjusting());
+        ui.set_guidance_available(false);
+        assert!(ui.sound_adjusting()); // Guidance service loss must not revoke tone adjustment.
+        ui.handle_pointer_release();
+        assert!(!ui.sound_adjusting());
+        ui.handle_pointer(562, 160);
+        assert_eq!(ui.sound_preferences().bass, 0);
+        ui.handle_pointer(750, 100);
+        assert_eq!(ui.settings_tab, 6);
+        assert!(!ui.sound_adjusting());
+        ui.handle_pointer_drag(735, 160);
+        assert_eq!(ui.sound_preferences().bass, 0);
+    }
+    #[test]
+    fn equipment_tabs_and_profile_changes_do_not_expose_unsupported_controls() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        assert_eq!(ui.settings_tabs(), [1, 2, 3, 4, 5, 6, 7]);
+        ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+        assert_eq!(ui.settings_tab, 1);
+        ui.handle_pointer(450, 100);
+        assert_eq!(ui.settings_tab, 3);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        assert!(ui.sound_adjusting());
+        ui.set_sound_profile(SoundProfile::Bose);
+        assert!(!ui.sound_adjusting());
+        assert_eq!(ui.rows().len(), 8);
+        assert_eq!(ui.row, 0);
+        ui.set_hud_installed(true);
+        assert_eq!(ui.settings_tabs().len(), 8);
+        ui.settings_tab = 0;
+        ui.set_hud_installed(false);
+        assert_eq!(ui.settings_tab, 1);
+        assert!(!ui.settings_rows);
+    }
+    #[test]
+    fn source_tab_history_and_arrow_jumps_keep_the_original_visible_context() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        assert_eq!(ui.settings_tab, 3);
+        assert_eq!(ui.first_visible_tab(), 0);
+        ui.handle_pointer(750, 100);
+        assert_eq!(ui.settings_tab, 5);
+        assert_eq!(ui.first_visible_tab(), 3);
+        ui.handle_pointer(70, 100);
+        assert_eq!(ui.settings_tab, 3);
+        assert_eq!(ui.first_visible_tab(), 0);
+        ui.handle_pointer(70, 100);
+        assert_eq!(ui.settings_tab, 3);
+        ui.settings_tab = 7;
+        ui.tab_favor = TabFavor::Second;
+        ui.handle_pointer(750, 100);
+        assert_eq!(ui.settings_tab, 7);
     }
 }

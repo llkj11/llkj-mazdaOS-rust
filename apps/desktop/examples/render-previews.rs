@@ -1,7 +1,7 @@
 //! Deterministic native renders using only the owner's offline-extracted artwork.
 use mazda_core::CommanderEvent;
-use mazda_mock::MockMazda;
-use mazda_ui::{Framebuffer, UiModel, DISPLAY_HEIGHT, DISPLAY_WIDTH};
+use mazda_mock::{DemoScenario, MockMazda};
+use mazda_ui::{Framebuffer, SoundProfile, StockAssets, UiModel, DISPLAY_HEIGHT, DISPLAY_WIDTH};
 use std::{
     fs,
     io::{self, Write},
@@ -43,6 +43,7 @@ fn main() -> io::Result<()> {
         Path::new,
     ))?;
     fs::create_dir_all(directory)?;
+    sound_previews(directory, &artwork)?;
     let mock = MockMazda::demo();
     let mut ui = UiModel::from_source(&mock);
     ui.set_assets(artwork);
@@ -102,6 +103,46 @@ fn main() -> io::Result<()> {
         }
         ui.handle_commander(CommanderEvent::Home);
         ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    Ok(())
+}
+
+fn sound_previews(directory: &Path, artwork: &StockAssets) -> io::Result<()> {
+    for (name, profile) in [
+        ("standard", SoundProfile::Standard),
+        ("bose", SoundProfile::Bose),
+        ("bose-j12", SoundProfile::BoseJ12),
+    ] {
+        let mut mock = MockMazda::demo();
+        let mut ui = UiModel::from_source(&mock);
+        ui.set_assets(artwork.clone());
+        ui.set_sound_profile(profile);
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        save(&ui, directory, &format!("sound-{name}"))?;
+        ui.handle_commander(CommanderEvent::Select);
+        for _ in 0..3 {
+            ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+        }
+        save(&ui, directory, &format!("sound-{name}-bass-minus3"))?;
+        ui.handle_commander(CommanderEvent::Select);
+        for _ in 0..20 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        save(&ui, directory, &format!("sound-{name}-beep"))?;
+        ui.set_guidance_available(false);
+        ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+        save(&ui, directory, &format!("sound-{name}-guidance-disabled"))?;
+        mock.set_scenario(DemoScenario::Driving);
+        ui.refresh(&mock);
+        save(&ui, directory, &format!("sound-{name}-driving"))?;
     }
     Ok(())
 }
