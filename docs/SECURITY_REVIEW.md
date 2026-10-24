@@ -248,3 +248,31 @@ There is no filesystem deletion, OS reset, network, credential read, device writ
 or OEM reset command. Version strings use unavailable service states instead of
 inferring installed firmware. Disclosure URLs are plain text, never opened or
 fetched. No dependencies, lockfile changes or Docker components were added.
+
+## Owner language dictionaries and native selection
+
+The language increment reads six app dictionaries for the three explicit NA host
+locales, the existing cached language declarations, `framework/js/Localization.js`
+and one original voice icon as data. Source identities are checked against the
+original extraction inventory. The new helper shares the inert literal reader;
+no JavaScript, firmware program, language engine or updater is run. Locale paths
+are restricted to the three validated mappings, dictionary values must be literal
+strings and support flags must be booleans. Proprietary dictionaries are converted
+to ignored `languages.bin`, not embedded in public source or uploaded.
+
+Runtime decoding bounds the file at 4 MB, 64 unique locales, 4096 entries per
+locale and 4096 scalars/16384 bytes per string. App names are allowlisted; IDs,
+codes, UTF-8, booleans, counts, duplicate keys and exact EOF are validated. Failed
+loads do not replace existing data. Text is never evaluated, followed as a URL or
+used as a filesystem path. App/string identity avoids confusing different uses
+of the same English word; ambiguous aliases do not guess a translation.
+
+Language changes affect only session state. Confirmation defaults to No; change
+completion/failure/retry is a deterministic host fixture, and Park loss cancels a
+pending change. No macOS locale call, network request, credential read, speech
+engine, OEM message or device write is added. Dialog word fitting prevents
+oversized localized text from underflowing centering arithmetic. The paragraph
+cache holds at most 16 entries with 4096 input scalars each; existing text/glyph
+bounds and disabled font hinting remain. No crates, lockfile changes, new native
+libraries, Docker services or vehicle integration are introduced. This focused
+review does not certify all translations, scripts/fonts or the complete firmware.

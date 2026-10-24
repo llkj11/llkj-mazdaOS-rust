@@ -33,5 +33,13 @@ pub fn load(directory: &Path) -> io::Result<StockAssets> {
             "invalid original disclosure text",
         ));
     }
+    let languages = directory.join("languages.bin");
+    if fs::metadata(&languages)?.len() > 4_000_000 || !assets.load_languages(&fs::read(languages)?)
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid owner language dictionaries",
+        ));
+    }
     Ok(assets)
 }

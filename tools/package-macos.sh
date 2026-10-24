@@ -22,8 +22,8 @@ cat > "$app_path/Contents/Info.plist" <<PLIST
 <key>CFBundleIdentifier</key><string>$bundle_id</string>
 <key>CFBundleName</key><string>$app_name</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.8.0</string>
-<key>CFBundleVersion</key><string>8</string>
+<key>CFBundleShortVersionString</key><string>0.9.0</string>
+<key>CFBundleVersion</key><string>9</string>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
@@ -33,6 +33,7 @@ mkdir -p "$app_path/Contents/Resources/firmware-assets"
 cp "$asset_dir/"*.rgba "$asset_dir/manifest.json" "$app_path/Contents/Resources/firmware-assets/"
 cp "$asset_dir/clock-zones.txt" "$app_path/Contents/Resources/firmware-assets/"
 cp "$asset_dir/legal.txt" "$app_path/Contents/Resources/firmware-assets/"
+cp "$asset_dir/languages.bin" "$app_path/Contents/Resources/firmware-assets/"
 cat > "$app_path/Contents/Resources/OWNER_ARTWORK_NOTICE.txt" <<'NOTICE'
 This local development app contains artwork extracted from the owner's supplied
 Mazda NA 70.00.100A firmware. That artwork is not covered by this project's MIT

@@ -57,7 +57,7 @@ impl UiModel {
                 renderer,
                 139,
                 y + 14,
-                self.sound.profile.labels()[row],
+                self.tr("audiosettings", self.sound.profile.labels()[row]),
                 if slider { 241 } else { 542 },
                 28,
                 color,
@@ -181,6 +181,11 @@ impl UiModel {
             SoundControl::Balance => ("Left", "", "Right"),
             _ => ("", "", ""),
         };
+        let labels = (
+            self.tr("audiosettings", labels.0),
+            self.tr("audiosettings", labels.1),
+            self.tr("audiosettings", labels.2),
+        );
         renderer.text(389, y + 7, labels.0, 21, color);
         renderer.text(
             562 - usize::min(562, crate::text_width(labels.1, 21) / 2),

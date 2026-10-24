@@ -46,6 +46,7 @@ fn main() -> io::Result<()> {
     sound_previews(directory, &artwork)?;
     clock_previews(directory, &artwork)?;
     system_previews(directory, &artwork)?;
+    language_previews(directory, &artwork)?;
     let mock = MockMazda::demo();
     let mut ui = UiModel::from_source(&mock);
     ui.set_assets(artwork);
@@ -106,6 +107,117 @@ fn main() -> io::Result<()> {
         ui.handle_commander(CommanderEvent::Home);
         ui.handle_commander(CommanderEvent::RotateClockwise);
     }
+    Ok(())
+}
+
+fn language_previews(directory: &Path, artwork: &StockAssets) -> io::Result<()> {
+    for code in ["en_US", "es_MX", "fr_CN"] {
+        let mock = MockMazda::demo();
+        let mut ui = UiModel::from_source(&mock);
+        ui.set_assets(artwork.clone());
+        assert!(ui.set_host_language(code));
+        save(&ui, directory, &format!("locale-{code}-home"))?;
+        locale_domain_previews(directory, &ui, code)?;
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        save(&ui, directory, &format!("locale-{code}-display"))?;
+        ui.handle_commander(CommanderEvent::Back);
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        save(&ui, directory, &format!("locale-{code}-sound"))?;
+        ui.handle_commander(CommanderEvent::Back);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        save(&ui, directory, &format!("locale-{code}-clock"))?;
+        ui.handle_commander(CommanderEvent::Back);
+        for _ in 0..3 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        save(&ui, directory, &format!("locale-{code}-system"))?;
+        for _ in 0..2 {
+            ui.handle_commander(CommanderEvent::RotateClockwise);
+        }
+        ui.handle_commander(CommanderEvent::Select);
+        save(&ui, directory, &format!("locale-{code}-languages"))?;
+    }
+    language_flow_previews(directory, artwork)
+}
+fn locale_domain_previews(directory: &Path, source: &UiModel, code: &str) -> io::Result<()> {
+    let mut ui = source.clone();
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, &format!("locale-{code}-applications"))?;
+    ui.handle_commander(CommanderEvent::Home);
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, &format!("locale-{code}-communication"))?;
+    ui.handle_commander(CommanderEvent::Music);
+    save(&ui, directory, &format!("locale-{code}-entertainment"))?;
+    ui.handle_commander(CommanderEvent::Navigation);
+    save(&ui, directory, &format!("locale-{code}-compass"))?;
+    Ok(())
+}
+
+fn language_flow_previews(directory: &Path, artwork: &StockAssets) -> io::Result<()> {
+    let mock = MockMazda::demo();
+    let mut ui = UiModel::from_source(&mock);
+    ui.set_assets(artwork.clone());
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    for _ in 0..6 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "language-confirm-no")?;
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    save(&ui, directory, "language-confirm-yes")?;
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "language-progress")?;
+    ui.advance_simulation(std::time::Duration::from_millis(1500));
+    save(&ui, directory, "language-spanish-selected")?;
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    ui.set_language_change_failure(true);
+    ui.advance_simulation(std::time::Duration::from_millis(1500));
+    save(&ui, directory, "language-error-no")?;
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    save(&ui, directory, "language-error-retry")?;
+    ui.handle_commander(CommanderEvent::Select);
+    ui.set_language_change_failure(false);
+    ui.advance_simulation(std::time::Duration::from_millis(1500));
+    save(&ui, directory, "language-french-selected")?;
+    ui.handle_commander(CommanderEvent::Back);
+    for _ in 0..3 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "locale-fr_CN-about")?;
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "locale-fr_CN-disclosure")?;
+    ui.handle_commander(CommanderEvent::Back);
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "locale-fr_CN-version")?;
     Ok(())
 }
 

@@ -592,6 +592,91 @@
       "path": "jci/gui/common/templates/Dialog3/js/Dialog3Tmplt.js",
       "bytes": 3626,
       "sha256": "68b3e7385ddaea613134c670f53ce3ba9037ce50f4fc3ed249940382682ddec6"
+    },
+    {
+      "path": "jci/gui/apps/syssettings/images/voice_recognition.png",
+      "bytes": 1522,
+      "sha256": "6e5429de31d09ea578db211501679772549325a8f3e20aaa7c95e69c13e33446"
+    },
+    {
+      "path": "jci/gui/framework/js/Localization.js",
+      "bytes": 32541,
+      "sha256": "907f7d41e3eea90998b7324b43735ac70137be131509b9324a736f3715f69de0"
+    },
+    {
+      "path": "jci/gui/resources/js/common/commonAppDict_en_US.js",
+      "bytes": 6963,
+      "sha256": "ebb3a5d0dda8de0a06ff20e8a132be6a7c5bcfa0c7f43944fd59bab696620809"
+    },
+    {
+      "path": "jci/gui/resources/js/common/commonAppDict_es_MX.js",
+      "bytes": 7482,
+      "sha256": "778704e42e12ed1b4d14215631a79008a9ee223936dc91f05e0de88d31f8e629"
+    },
+    {
+      "path": "jci/gui/resources/js/common/commonAppDict_fr_CN.js",
+      "bytes": 7666,
+      "sha256": "d72d1e42cc36083eb11652b3a2afc999a6d346eb693197d36239203b31e876b7"
+    },
+    {
+      "path": "jci/gui/resources/js/system/systemAppDict_en_US.js",
+      "bytes": 28187,
+      "sha256": "a0258cfb08cbb325c29c705b0883a6b383ee6c026c5c52472362e6741fc3a7b9"
+    },
+    {
+      "path": "jci/gui/resources/js/system/systemAppDict_es_MX.js",
+      "bytes": 30550,
+      "sha256": "176f8835de82edb38442a9f7b4bc92d56493fac31fad9d9d86b11ca7543855b5"
+    },
+    {
+      "path": "jci/gui/resources/js/system/systemAppDict_fr_CN.js",
+      "bytes": 31146,
+      "sha256": "563c49f88904f7d72106eed6b9af28fd71643f8732eddc9afd6349f3d96bc941"
+    },
+    {
+      "path": "jci/gui/resources/js/syssettings/syssettingsAppDict_es_MX.js",
+      "bytes": 17437,
+      "sha256": "cf027f5e087f32561cc6c1ae2ed10aab0727f225139d7bc31842e8a0ef9d350c"
+    },
+    {
+      "path": "jci/gui/resources/js/syssettings/syssettingsAppDict_fr_CN.js",
+      "bytes": 17699,
+      "sha256": "9258aa3f4802f3e4b801d725d59bd5ae466e6d02454b807c451670bf69089591"
+    },
+    {
+      "path": "jci/gui/resources/js/audiosettings/audiosettingsAppDict_es_MX.js",
+      "bytes": 668,
+      "sha256": "53c19cd94ab7971dfaed3265c87a1901f1dd9d18309733eb46ba45063c9c4cfb"
+    },
+    {
+      "path": "jci/gui/resources/js/audiosettings/audiosettingsAppDict_fr_CN.js",
+      "bytes": 650,
+      "sha256": "0948b4176ac54c75a8f68cf491d1dff712dcaa5e055151b01efe37c8e35b0965"
+    },
+    {
+      "path": "jci/gui/resources/js/emnavi/emnaviAppDict_en_US.js",
+      "bytes": 2669,
+      "sha256": "b217a586773f97cf2237af3a312aced58b46f2eecdb4fdd2413966185eef10e5"
+    },
+    {
+      "path": "jci/gui/resources/js/emnavi/emnaviAppDict_es_MX.js",
+      "bytes": 2743,
+      "sha256": "e20dfd856e742719866523dd1674ba58f017b7e8986a68ad76ba162ba0c3b812"
+    },
+    {
+      "path": "jci/gui/resources/js/emnavi/emnaviAppDict_fr_CN.js",
+      "bytes": 2768,
+      "sha256": "c5f299b57fdc2d2bb5bda3085b5459930ed1d5491c0c9eac09cc1ac08fbbb880"
+    },
+    {
+      "path": "jci/gui/resources/js/sysupdate/sysupdateAppDict_es_MX.js",
+      "bytes": 5273,
+      "sha256": "1144a1d2d4c57dd933017991f63b71ff0f6b85c717efc4115c6fc74ee236f226"
+    },
+    {
+      "path": "jci/gui/resources/js/sysupdate/sysupdateAppDict_fr_CN.js",
+      "bytes": 5327,
+      "sha256": "2331f8e308ec46814bd973d2af4e6ff9e80e9ff416a3a5ff3ba796c27c300b6a"
     }
   ]
 }

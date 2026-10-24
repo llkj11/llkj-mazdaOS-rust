@@ -17,7 +17,7 @@ not implemented; the importer pins the exact reviewed package SHA-256.
 
 The local extraction contains **4,499 GUI files and 58 fonts**. The complete local
 inventory records path, byte count and SHA-256 for every extracted regular file.
-A small decoder converts **76 original PNGs** into bounded RGBA images for Rust.
+A small decoder converts **77 original PNGs** into bounded RGBA images for Rust.
 An inert declaration reader also extracts 101 original English time-zone labels
 to an owner-local, bounded text file; no firmware JavaScript is evaluated.
 The original disclosure text is decoded from quoted string literals joined with
@@ -73,6 +73,7 @@ cargo run --locked -p mazda-desktop -- --navigation-available --clock-gps-sync
 # System unit-row/service fixtures; do not detect actual car equipment:
 cargo run --locked -p mazda-desktop -- --temperature-units --distance-units
 cargo run --locked -p mazda-desktop -- --distance-units --new-cmu --system-services-unavailable
+cargo run --locked -p mazda-desktop -- --language fr_CN
 ```
 
 The destination must be empty, and the firmware must match the pinned hash. Files
@@ -80,7 +81,7 @@ remain local under ignored `target/owner-firmware/`. The default executable refu
 to start if the original artwork is missing, rather than substituting a new UI.
 `MZD_FIRMWARE_PASSWORD` may supply the archive password non-interactively.
 Older imports need reimporting into an empty directory: the current runtime
-requires all 76 images, `clock-zones.txt` and `legal.txt`. Missing inputs fail explicitly.
+requires all 77 images, `clock-zones.txt`, `legal.txt` and `languages.bin`. Missing inputs fail explicitly.
 
 ```sh
 cargo fmt --all -- --check
@@ -147,7 +148,7 @@ ALC/Guidance fill from the start. Source tick marks, center marks, end labels an
 enabled/disabled checkbox artwork are imported without executing firmware code.
 The Sound increment added six PNGs; the current Clock increment adds eighteen
 more, bringing that local render set to 65 images. System adds eleven more PNGs
-for dialogs, disclosure and shared Back, bringing the current set to 76.
+for dialogs, disclosure and shared Back, bringing that increment to 76.
 
 All Sound values are host-session state; there is no audible output, amplifier,
 navigation prompt or OEM-setting write. The firmware's Guidance Volume message
@@ -209,8 +210,15 @@ Restore uses the original full-screen No/Yes and progress artwork, hides the
 status bar, defaults to No, and after a synthetic 1500ms resets Display, Sound,
 Clock and System preferences only. Equipment, source observations, files and OS
 settings remain unchanged. Loss of Park/services cancels before completion.
-Language selection, complete localization, music-update contexts, real Tool Tip/
+Global language/voice support, music-update contexts, real Tool Tip/
 VR help overlays and OEM service/reset/progress timing remain pending.
+
+The language increment adds the original voice icon (77 images total) and a
+bounded owner-local dictionary asset. System → Language now has NA English,
+Spanish and Canadian French selection, original confirmation/progress/retry and
+real text changes across existing screens. [Language details and limits](LANGUAGE_PORT.md)
+explain the fixture, exact source IDs, data bounds, timing and unfinished global
+language/voice/font work. Nothing changes the Mac or car language.
 
 ## Render comparisons
 

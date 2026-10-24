@@ -15,10 +15,12 @@ import tarfile
 import tempfile
 import zlib
 from firmware_literals import LiteralReader
+from firmware_languages import language_assets
 
 PACKAGE_SHA256 = '5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0'
 GUI_PREFIX = 'jci/gui/'
 ASSETS = {
+    'language-voice': 'apps/syssettings/images/voice_recognition.png',
     'left-back': 'common/controls/LeftBtn/images/BtnLeft_En.png',
     'left-back-disabled': 'common/controls/LeftBtn/images/BtnLeft_Ds.png',
     'system-dialog-bg': 'common/controls/Dialog3/images/DialogBG_Style01.png',
@@ -237,6 +239,7 @@ def extract(firmware, destination, password):
         (rendered/f'{key}.rgba').write_bytes(rgba)
     (rendered/'clock-zones.txt').write_bytes(clock_zone_text(destination/'reference'))
     (rendered/'legal.txt').write_bytes(legal_text(destination/'reference'))
+    (rendered/'languages.bin').write_bytes(language_assets(destination/'reference'))
     manifest={'package_sha256':digest,'files':inventory,'render_assets':ASSETS}
     (destination/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     shutil.copyfile(destination/'manifest.json',rendered/'manifest.json')

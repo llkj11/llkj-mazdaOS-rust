@@ -17,6 +17,30 @@ def png(width,height,color,raw):
     return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',width,height,8,color,0,0,0))+chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b'')
 
 class ImportChecks(unittest.TestCase):
+    def language_reference(self,directory):
+        gui=Path(directory)/'jci/gui';app=gui/'apps/syssettings/js/syssettingsApp.js';app.parent.mkdir(parents=True)
+        ids=['LANGS_US_ENGLISH','LANGS_NA_SPANISH','LANGS_CN_FRENCH'];codes=['en_US','es_MX','fr_CN']
+        app.write_text('this._cachedLanguagesList='+json.dumps([{'languageID':i,'vrSupport':True,'ttsSupport':False} for i in ids])+'; ignored();')
+        framework=gui/'framework/js/Localization.js';framework.parent.mkdir(parents=True);framework.write_text('this.LANG_CODES='+json.dumps(dict(zip(ids,codes)))+'; ignored();')
+        for name in ['common','system','syssettings','audiosettings','emnavi','sysupdate']:
+            parent=gui/'resources/js'/name;parent.mkdir(parents=True)
+            for code in codes:
+                (parent/(name+'AppDict_'+code+'.js')).write_text('var Localization_fixture='+json.dumps({'Name':'Source' if code=='en_US' else 'témoignage'})+'; ignored();')
+        return gui
+    def test_language_asset_preserves_source_ids_codes_flags_and_literal_unicode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.language_reference(directory);data=importer.language_assets(Path(directory))
+            self.assertEqual(data[:8],b'MZLANG01');self.assertEqual(struct.unpack('<I',data[8:12])[0],3)
+            self.assertIn(b'LANGS_NA_SPANISH',data);self.assertIn('témoignage'.encode(),data)
+    def test_language_asset_rejects_executable_values_and_unsafe_locale_mapping(self):
+        with tempfile.TemporaryDirectory() as directory:
+            gui=self.language_reference(directory)
+            dictionary=gui/'resources/js/syssettings/syssettingsAppDict_fr_CN.js'
+            dictionary.write_text('var Localization_fixture={Name:dangerous()};')
+            with self.assertRaises(ValueError):importer.language_assets(Path(directory))
+            dictionary.write_text('var Localization_fixture={Name:"safe"};')
+            (gui/'framework/js/Localization.js').write_text('this.LANG_CODES={LANGS_US_ENGLISH:"../outside",LANGS_NA_SPANISH:"es_MX",LANGS_CN_FRENCH:"fr_CN"};')
+            with self.assertRaises(ValueError):importer.language_assets(Path(directory))
     def test_rgb_adds_opaque_alpha_and_rgba_preserves_transparency(self):
         self.assertEqual(importer.png_rgba(png(2,1,2,b'\0\xff\0\0\0\xff\0'))[16:],bytes([255,0,0,255,0,255,0,255]))
         self.assertEqual(importer.png_rgba(png(1,1,6,b'\0\x10\x20\x30\x40'))[16:],bytes([16,32,48,64]))

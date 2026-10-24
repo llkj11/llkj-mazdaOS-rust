@@ -118,7 +118,7 @@ impl UiModel {
                 renderer,
                 139,
                 y + 14,
-                label,
+                self.tr("syssettings", label),
                 if row == 2 {
                     364
                 } else if row == 3 {
@@ -147,6 +147,7 @@ impl UiModel {
                 }
                 2 => {
                     for (index, label) in ["12h", "24h"].iter().enumerate() {
+                        let label = self.tr("syssettings", label);
                         let x = 503 + index * 118;
                         let selected =
                             (index == 1) == (self.clock.values.format == TimeFormat::Hours24);
@@ -175,7 +176,8 @@ impl UiModel {
                         .clock_zones
                         .get(self.clock.values.time_zone)
                         .map_or("---", String::as_str);
-                    let text = crate::typography::ellipsized(label, 129, 28);
+                    let text =
+                        crate::typography::ellipsized(self.tr("syssettings", label), 129, 28);
                     renderer.text(724 - text_width(&text, 28), y + 14, &text, 28, color);
                 }
                 _ => {}
@@ -191,7 +193,13 @@ impl UiModel {
     }
     fn render_clock_adjust(&self, renderer: &mut impl Renderer, focus: usize) {
         self.image_natural(renderer, "clock-background", 10, 64);
-        renderer.text(90, 75, "Adjust Time", 40, Color::TEXT);
+        renderer.text(
+            90,
+            75,
+            self.tr("syssettings", "Adjust Time"),
+            40,
+            Color::TEXT,
+        );
         let hour = self.clock.values.display_hour();
         let minute = self.clock.values.minute;
         for (x, digit) in [
@@ -271,7 +279,13 @@ impl UiModel {
     fn render_clock_zones(&self, renderer: &mut impl Renderer, focus: usize) {
         self.image(renderer, "list-background", (68, 64, 732, 416));
         self.image_natural(renderer, "settings-title", 69, 64);
-        renderer.text(100, 75, "Select Time Zone", 40, Color::TEXT);
+        renderer.text(
+            100,
+            75,
+            self.tr("syssettings", "Select Time Zone"),
+            40,
+            Color::TEXT,
+        );
         let allowed = self.clock.enabled(3, self.vehicle.is_confirmed_parked());
         let color = if allowed {
             Color::TEXT
@@ -307,7 +321,7 @@ impl UiModel {
                 (false, false) => "settings-radio-empty-disabled",
             };
             self.image_natural(renderer, asset, 95, i32::try_from(y + 14).expect("row"));
-            let label = crate::typography::ellipsized(label, 489, 28);
+            let label = crate::typography::ellipsized(self.tr("syssettings", label), 489, 28);
             renderer.text(139, y + 14, &label, 28, color);
         }
     }

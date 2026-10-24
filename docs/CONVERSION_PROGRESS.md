@@ -11,7 +11,7 @@ Static declaration extraction currently finds these contexts:
 
 | Firmware app | Declared contexts | Statically resolved list rows | Implementation status |
 | --- | ---: | ---: | --- |
-| syssettings | 28 | 115 | Display, Clock, System root/About/disclosures/reset host flows implemented; language, communication/devices and live services remain |
+| syssettings | 28 | 115 | Display, Clock, System/info/reset and four NA language-flow contexts implemented in host state; global languages, communication/devices and live services remain |
 | audiosettings | 1 | 0 | SoundTab host controls implemented for standard/Bose/Bose J12; real services, guidance SBN and detailed timing remain |
 | vehsettings | 81 | 176 | Catalogued; full native implementation and verification pending |
 | btpairing | 35 | 12 | Catalogued; full native implementation and verification pending |
@@ -57,9 +57,14 @@ error. A catalogued screen does not imply its routing, layout or behavior works.
   independent temperature/distance rows, About, owner-local scrollable disclosures,
   unavailable version dialog, and No/Yes restore/progress are implemented. Reset
   changes only implemented host preferences and preserves equipment/observations.
-  Its 1500ms mock completion is not OEM service timing. Language selection and
-  music database update remain explicitly disconnected, requiring conversion.
+  Its 1500ms mock completion is not OEM service timing. Music database update
+  remains disconnected, requiring conversion.
   Shared original Back artwork and full-screen reset chrome are restored.
+
+- Language: NA English/Spanish/Canadian French selector, confirmation, progress,
+  failure/retry and app-scoped original text are implemented across existing native
+  screens. The 42-entry global source list, UK/Korean fallback contexts, other
+  scripts/fonts, real VR/TTS and OEM timing remain. See [language scope](LANGUAGE_PORT.md).
 
 ## Required proof before completion
 

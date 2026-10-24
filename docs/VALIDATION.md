@@ -213,3 +213,45 @@ and left-button focus transitions remain incomplete. Mock restore completes afte
 1500ms and affects only implemented host preferences. The full Settings and wider
 conversion objective remains active; car ABI/services/runtime are still unproven.
 No Docker service applies and no vehicle was connected or modified.
+
+## Language selection and owner dictionary text, 2026-10-24
+
+Four further contexts (ChangeLanguage, LanguageConf, LanguageChangeProgress,
+LanguageChangeError) now have native host routes. The three-entry NA language
+fixture is drawn from cached declarations and original dictionary mappings; it
+is not a captured LanguagesList payload from the car. The global source list,
+UK/Korean fallback contexts and wider script/font coverage remain incomplete.
+
+- 69 Rust tests pass: core 3, desktop 9, mock 4, UI 53. Twelve importer and five
+  catalog tests pass. Formatting and strict all-targets Clippy pass. No crates or
+  lockfile changes were required.
+- Tests cover complete-file decoding, every truncated fixture prefix, duplicate
+  locales/keys, invalid counts/UTF-8, app-scoped aliases, exact string IDs, failed
+  load preservation, current/candidate separation, default No, success after mock
+  completion, error/retry, Park revocation, Back/global exit, pointer routes and
+  host restore to English. Long localized words cannot underflow centering, and
+  a longer paragraph stays inside the existing three-line Compass area.
+- Forty deterministic locale/flow renders cover English/Spanish/French Home,
+  Applications, Communication, Entertainment, Compass, Display, Sound, Clock,
+  System and language list; confirmation, progress, failure/retry, selected radios
+  and French About/disclosure/version layouts are also included. These are native
+  source-guided renders, not an independent Opera comparison. The disclosure body
+  remains the original English text; its translated title can occupy two lines.
+- Live Mac 0.9.0 checks exercised No cancellation, English → Spanish → French,
+  translated Home/System/tab text, original microphone/radio artwork, the two-line
+  French disclosure heading and cancellation while driving. Park restored editing.
+  After the final oversized-word guard, the exact delivered package was reopened,
+  switched English → French → English and left in Park. Error/retry has model and
+  render evidence, not a live native failure-path trial. Native mouse activation
+  remains unverified.
+- The final signed 0.9.0 package was independently extracted, its ad-hoc signature
+  verified and its executable compared with the signed build. Three exact-binary
+  native smoke checks (English, Spanish, French/failure fixture) each rendered 90
+  frames and exited 0.
+
+One original voice PNG brings the fixed image set to 77. The 302082-byte dictionary
+asset stays local; all selected source identities match the original extraction
+inventory. No firmware JavaScript, native program or voice engine was run. No
+Docker service applies, and no OS language setting or vehicle was changed. Full
+Settings, other Mazda domains, OEM timing/services and car runtime remain active
+work, as recorded in the conversion ledger and deployment plan.

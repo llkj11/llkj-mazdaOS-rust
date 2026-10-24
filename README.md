@@ -29,8 +29,9 @@ simulation. Clock adds manual time, 12h/24h, GPS Sync, the original time-zone li
 and daylight-saving preference. These remain in memory; no GPS, time-zone
 calculation or Mac clock setting is connected. System adds Tool Tips/VR Examples,
 conditional unit preferences, About/disclosures, unavailable version information
-and restore of implemented host preferences. Language selection and music database
-updates remain disconnected. The default Touring fixture uses standard audio and no HUD; explicit
+and restore of implemented host preferences. The original language selector now changes existing screen text using NA English,
+Spanish and Canadian French dictionaries; full global language/voice support and
+music database updates remain pending. The default Touring fixture uses standard audio and no HUD; explicit
 `--audio-profile bose`, `--audio-profile bose-j12` and `--hud` fixtures retain the
 other source layouts for testing. Remaining Settings contexts, radio, phone, maps, cameras and actual
 vehicle services still require conversion or integration.

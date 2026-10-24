@@ -211,10 +211,75 @@ pub(crate) fn wrapped_lines(text: &str, width: usize, size: usize) -> Vec<String
     }
     lines
 }
+pub(crate) fn fit_block(
+    text: &str,
+    width: usize,
+    max_lines: usize,
+    preferred: usize,
+) -> (Vec<String>, usize) {
+    type BlockKey = (String, usize, usize, usize);
+    type Block = (Vec<String>, usize);
+    static BLOCKS: OnceLock<Mutex<HashMap<BlockKey, Block>>> = OnceLock::new();
+    let key = (
+        text.chars().take(4096).collect::<String>(),
+        width,
+        max_lines,
+        preferred,
+    );
+    let cache = BLOCKS.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Some(result) = cache
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .get(&key)
+        .cloned()
+    {
+        return result;
+    }
+    let result = fit_block_uncached(&key.0, width, max_lines, preferred);
+    let mut cache = cache
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if cache.len() >= 16 {
+        cache.clear();
+    }
+    cache.insert(key, result.clone());
+    result
+}
+fn fit_block_uncached(
+    text: &str,
+    width: usize,
+    max_lines: usize,
+    preferred: usize,
+) -> (Vec<String>, usize) {
+    let preferred = preferred.clamp(8, MAX_FONT_SIZE);
+    let minimum = preferred.min(16);
+    let max_lines = max_lines.clamp(1, 32);
+    for size in (minimum..=preferred).rev() {
+        let lines = wrapped_lines(text, width, size);
+        if lines.len() <= max_lines {
+            return (lines, size);
+        }
+    }
+    let mut lines = wrapped_lines(text, width, minimum);
+    lines.truncate(max_lines);
+    if let Some(last) = lines.last_mut() {
+        *last = ellipsized(&format!("{last}…"), width, minimum);
+    }
+    (lines, minimum)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn longer_localized_paragraphs_fit_the_original_three_line_box() {
+        let text = "Localized explanation with wider accented characters: ".repeat(8);
+        let (lines, size) = fit_block(&text, 630, 3, 22);
+        assert!(lines.len() <= 3);
+        assert!((16..=22).contains(&size));
+        assert!(lines.iter().all(|line| text_width(line, size) <= 630));
+        assert!(276 + (lines.len() - 1) * ((size * 14 + 5) / 10) + size < 376);
+    }
 
     #[test]
     fn proportional_outlines_and_real_metrics_fit_unicode_text() {

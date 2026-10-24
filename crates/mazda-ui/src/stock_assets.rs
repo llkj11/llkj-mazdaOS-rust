@@ -91,9 +91,11 @@ pub struct StockAssets {
     images: BTreeMap<String, Bitmap>,
     pub(crate) clock_zones: Vec<String>,
     pub(crate) legal_lines: Vec<String>,
+    pub(crate) languages: crate::languages::LanguageCatalog,
 }
 impl StockAssets {
-    pub const NAMES: [&'static str; 76] = [
+    pub const NAMES: [&'static str; 77] = [
+        "language-voice",
         "left-back",
         "left-back-disabled",
         "system-dialog-bg",
@@ -185,6 +187,14 @@ impl StockAssets {
             .all(|name| self.images.contains_key(*name))
             && !self.clock_zones.is_empty()
             && !self.legal_lines.is_empty()
+            && !self.languages.packs.is_empty()
+    }
+    pub fn load_languages(&mut self, bytes: &[u8]) -> bool {
+        let Some(catalog) = crate::languages::LanguageCatalog::decode(bytes) else {
+            return false;
+        };
+        self.languages = catalog;
+        true
     }
     /// Owner-only disclosure text, never a script or external link to follow.
     pub fn load_legal_text(&mut self, bytes: &[u8]) -> bool {

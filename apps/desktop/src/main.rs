@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut mazda = MockMazda::demo();
     let mut ui = UiModel::from_source(&mazda);
     ui.set_assets(artwork);
-    configure_fixtures(&mut ui, &arguments, audio_profile);
+    configure_fixtures(&mut ui, &arguments, audio_profile)?;
     let mut framebuffer = Framebuffer::mazda_connect();
     let mut window = Window::new(
         &base_title,
@@ -140,7 +140,7 @@ fn configure_fixtures(
     ui: &mut UiModel,
     arguments: &[std::ffi::OsString],
     audio_profile: SoundProfile,
-) {
+) -> Result<(), &'static str> {
     ui.set_sound_profile(audio_profile);
     ui.set_hud_installed(arguments.iter().any(|arg| arg == "--hud"));
     ui.set_guidance_available(!arguments.iter().any(|arg| arg == "--guidance-disabled"));
@@ -154,6 +154,17 @@ fn configure_fixtures(
             .any(|arg| arg == "--system-services-unavailable"),
         new_cmu: arguments.iter().any(|arg| arg == "--new-cmu"),
     });
+    ui.set_language_change_failure(arguments.iter().any(|arg| arg == "--language-change-fails"));
+    if let Some(index) = arguments.iter().position(|arg| arg == "--language") {
+        let code = arguments
+            .get(index + 1)
+            .and_then(|s| s.to_str())
+            .ok_or("--language requires en_US, es_MX or fr_CN")?;
+        if !ui.set_host_language(code) {
+            return Err("--language requires an imported en_US, es_MX or fr_CN fixture");
+        }
+    }
+    Ok(())
 }
 
 fn load_artwork(
@@ -358,6 +369,23 @@ mod tests {
         );
         assert!(super::parse_audio_profile(&args(&["--audio-profile"])).is_err());
         assert!(super::parse_audio_profile(&args(&["--audio-profile", "typo"])).is_err());
+    }
+    #[test]
+    fn language_fixture_arguments_fail_before_window_creation_without_valid_owner_data() {
+        let mock = MockMazda::demo();
+        let mut ui = UiModel::from_source(&mock);
+        for values in [
+            vec!["app", "--language"],
+            vec!["app", "--language", "missing"],
+            vec!["app", "--language", "fr_CN"],
+        ] {
+            let args: Vec<_> = values.iter().map(std::ffi::OsString::from).collect();
+            assert!(
+                super::configure_fixtures(&mut ui, &args, mazda_ui::SoundProfile::Standard)
+                    .is_err()
+            );
+            assert_eq!(ui.language_code(), "en_US");
+        }
     }
 
     #[test]

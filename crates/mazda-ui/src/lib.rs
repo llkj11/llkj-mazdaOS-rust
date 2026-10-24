@@ -1,6 +1,7 @@
 //! Platform-neutral native UI with bundled, antialiased typography and read-only observations.
 mod clock;
 mod graphics;
+mod languages;
 mod preferences;
 mod settings;
 mod sound;

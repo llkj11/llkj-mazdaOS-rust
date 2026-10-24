@@ -1,6 +1,7 @@
 //! Native port of the owner's NA 70.00.100A home/menu geometry.
 //! Source mapping is documented in `docs/STOCK_UI_PORT.md`. No firmware JS executes.
 use crate::clock::{ClockPage, ClockSession, CLOCK_ROWS};
+use crate::languages::{LanguagePage, LanguageSession};
 use crate::settings::DisplaySession;
 use crate::sound::SoundSession;
 use crate::system_settings::{SystemPage, SystemSession};
@@ -12,6 +13,8 @@ use mazda_core::{CommanderEvent, MazdaReadOnly, MediaState, VehicleSnapshot};
 use std::sync::Arc;
 #[path = "clock_ui.rs"]
 mod clock_ui;
+#[path = "language_ui.rs"]
+mod language_ui;
 #[path = "sound_ui.rs"]
 mod sound_ui;
 #[path = "system_ui.rs"]
@@ -118,6 +121,7 @@ pub struct UiModel {
     sound: SoundSession,
     clock: ClockSession,
     system: SystemSession,
+    language: LanguageSession,
 }
 impl UiModel {
     #[must_use]
@@ -138,6 +142,7 @@ impl UiModel {
             sound: SoundSession::default(),
             clock: ClockSession::default(),
             system: SystemSession::default(),
+            language: LanguageSession::default(),
         }
     }
     pub fn set_assets(&mut self, assets: StockAssets) {
@@ -149,12 +154,18 @@ impl UiModel {
                 .min(assets.clock_zones.len() - 1);
         }
         self.assets = Arc::new(assets);
+        self.language.current = self
+            .language
+            .current
+            .min(self.assets.languages.packs.len().saturating_sub(1));
+        self.language.page = LanguagePage::Closed;
     }
     pub fn refresh(&mut self, source: &impl MazdaReadOnly) {
         self.vehicle = source.vehicle_snapshot();
         self.media = source.media_state();
         self.clock.restrict(self.vehicle.is_confirmed_parked());
         self.system.restrict(self.vehicle.is_confirmed_parked());
+        self.language.restrict(self.vehicle.is_confirmed_parked());
         if !self.vehicle.is_confirmed_parked() {
             self.display.cancel_interaction();
             self.sound.cancel_interaction();
@@ -321,6 +332,7 @@ impl UiModel {
         self.sound.cancel_interaction();
         self.clock.page = ClockPage::Root;
         self.system.page = SystemPage::Root;
+        self.language.page = LanguagePage::Closed;
         self.screen = screen;
         self.row = 0;
         self.settings_rows = false;
@@ -480,6 +492,13 @@ impl UiModel {
     }
     fn settings_active_event(&mut self, event: CommanderEvent) -> bool {
         let parked = self.vehicle.is_confirmed_parked();
+        if self.settings_tab == 7
+            && self
+                .language
+                .event(event, parked, self.assets.languages.packs.len())
+        {
+            return true;
+        }
         match self.settings_tab {
             1 => self.display.active_event(event, parked),
             3 => self.sound.active_event(event, parked),
@@ -493,6 +512,18 @@ impl UiModel {
         }
     }
     fn select_row(&mut self) {
+        if self.screen == Screen::Settings
+            && self.settings_tab == 7
+            && self.system.controls().get(self.row) == Some(&crate::SystemControl::Language)
+            && self.vehicle.is_confirmed_parked()
+        {
+            self.notice = if self.language.open(self.assets.languages.packs.len()) {
+                None
+            } else {
+                Some("Original language dictionaries are not loaded")
+            };
+            return;
+        }
         self.notice = match (self.screen, self.settings_tab) {
             (Screen::Settings, 1) => self
                 .display
@@ -612,12 +643,7 @@ impl UiModel {
             return true;
         }
         if self.screen != Screen::Home && x < 59 && y < 64 {
-            if self.system_child()
-                && matches!(
-                    self.system.page,
-                    SystemPage::Confirm { .. } | SystemPage::Progress { .. }
-                )
-            {
+            if self.full_screen_dialog() {
                 return true;
             }
             self.open(Screen::Home);
@@ -633,6 +659,10 @@ impl UiModel {
             return true;
         }
         if self.system_child() {
+            if self.language.page != LanguagePage::Closed {
+                self.language_pointer(x, y);
+                return true;
+            }
             self.system_pointer(x, y);
             return true;
         }
@@ -656,16 +686,13 @@ impl UiModel {
             self.render_display_reset(renderer);
             self.image_natural(renderer, "left-back", 0, 64);
             return;
-        } else if self.system_child()
-            && matches!(
-                self.system.page,
-                SystemPage::Confirm { .. } | SystemPage::Progress { .. }
-            )
-        {
+        } else if self.full_screen_dialog() {
             self.render_system_child(renderer);
             self.image_natural(
                 renderer,
-                if matches!(self.system.page, SystemPage::Progress { .. }) {
+                if matches!(self.system.page, SystemPage::Progress { .. })
+                    || matches!(self.language.page, LanguagePage::Progress { .. })
+                {
                     "left-back-disabled"
                 } else {
                     "left-back"
@@ -691,24 +718,27 @@ impl UiModel {
                 renderer,
                 117,
                 8,
-                if self.screen == Screen::Navigation {
-                    "Compass"
-                } else if self.clock_child() {
-                    "System Settings"
-                } else if self.system_child() {
-                    if self.system.page == SystemPage::Version {
-                        "System Update"
-                    } else if matches!(
-                        self.system.page,
-                        SystemPage::Confirm { .. } | SystemPage::Progress { .. }
-                    ) {
-                        "Settings"
-                    } else {
+                self.tr(
+                    self.status_dictionary(),
+                    if self.screen == Screen::Navigation {
+                        "Compass"
+                    } else if self.clock_child() {
                         "System Settings"
-                    }
-                } else {
-                    self.screen.label()
-                },
+                    } else if self.system_child() {
+                        if self.system.page == SystemPage::Version {
+                            "System Update"
+                        } else if matches!(
+                            self.system.page,
+                            SystemPage::Confirm { .. } | SystemPage::Progress { .. }
+                        ) {
+                            "Settings"
+                        } else {
+                            "System Settings"
+                        }
+                    } else {
+                        self.screen.label()
+                    },
+                ),
                 420,
                 38,
                 Color::TEXT,
@@ -753,7 +783,7 @@ impl UiModel {
                 },
             );
         }
-        let label = self.selection().label();
+        let label = self.home_label();
         let width = text_width(label, 40);
         r.text(108 + (586 - width) / 2, 403, label, 40, Color::TEXT);
     }
@@ -773,6 +803,7 @@ impl UiModel {
             (554, "NE", 28, 187),
             (678, "E", 85, 129),
         ] {
+            let label = self.tr("emnavi", label);
             r.text(
                 center - text_width(label, size) / 2,
                 y,
@@ -783,38 +814,20 @@ impl UiModel {
         }
         self.image_natural(r, "compass-foreground", 74, 65);
         let text="Your Mazda is not equipped with a Navigation system. However, an integrated Navigation system is available through your Mazda dealer as a Genuine Mazda Accessory.";
-        let mut line = String::new();
-        let mut y = 276;
-        for word in text.split_whitespace() {
-            let candidate = if line.is_empty() {
-                word.to_owned()
-            } else {
-                format!("{line} {word}")
-            };
-            if text_width(&candidate, 22) > 630 {
-                r.text(
-                    115 + (630 - text_width(&line, 22)) / 2,
-                    y,
-                    &line,
-                    22,
-                    Color::TEXT,
-                );
-                y += 31;
-                word.clone_into(&mut line);
-            } else {
-                line = candidate;
-            }
+        let text = self.tr("emnavi", text);
+        let (lines, size) = crate::typography::fit_block(text, 630, 3, 22);
+        for (row, line) in lines.iter().enumerate() {
+            r.text(
+                115 + (630 - text_width(line, size)) / 2,
+                276 + row * ((size * 14 + 5) / 10),
+                line,
+                size,
+                Color::TEXT,
+            );
         }
-        r.text(
-            115 + (630 - text_width(&line, 22)) / 2,
-            y,
-            &line,
-            22,
-            Color::TEXT,
-        );
         self.image(r, "compass-line", (60, 376, 740, 3));
         for (x, label) in [(104, "Latitude"), (329, "Longitude"), (577, "Elevation")] {
-            r.text(x, 411, label, 22, Color::TEXT);
+            r.text(x, 411, self.tr("emnavi", label), 22, Color::TEXT);
             r.text(x, 440, "---", 30, Color::TEXT);
         }
     }
@@ -851,7 +864,7 @@ impl UiModel {
                 r,
                 139,
                 y + 14,
-                label,
+                self.tr("syssettings", label),
                 if index == 2 || index == 3 || index == 4 {
                     241
                 } else {
@@ -862,6 +875,7 @@ impl UiModel {
             );
             if index == 2 {
                 for (button, label) in ["Auto", "Day", "Night"].into_iter().enumerate() {
+                    let label = self.tr("syssettings", label);
                     let x = 384 + button * 118;
                     self.image_natural(
                         r,
@@ -929,7 +943,10 @@ impl UiModel {
         self.image(r, "settings-dialog-bg", (0, 0, 800, 480));
         centered_lines(
             r,
-            "Are you sure you want to restore Display settings to the factory defaults?",
+            self.tr(
+                "syssettings",
+                "Are you sure you want to restore Display settings to the factory defaults?",
+            ),
             77,
             150,
             646,
@@ -937,6 +954,7 @@ impl UiModel {
             42,
         );
         for (index, label) in ["No", "Yes"].into_iter().enumerate() {
+            let label = self.tr("common", label);
             let x = 69 + index * 332;
             let focused = self.display.reset == Some(index == 1);
             self.image_natural(
@@ -987,7 +1005,7 @@ impl UiModel {
                     },
                     (i32::try_from(x).expect("tab coordinate"), 74, 143, 60),
                 );
-                let (label, size) = fit_text(SETTINGS[index], 131, 30);
+                let (label, size) = fit_text(self.tab_label(index, SETTINGS[index]), 131, 30);
                 r.text(
                     x + (143 - text_width(&label, size)) / 2,
                     86,
@@ -1030,10 +1048,11 @@ impl UiModel {
                 "list-separator",
                 (68, i32::try_from(y + 62).expect("row coordinate"), 732, 2),
             );
+            let label = self.tr("system", label);
             let text = if self.screen == Screen::Applications {
                 format!("{}.  {label}", index + 1)
             } else {
-                (*label).to_owned()
+                label.to_owned()
             };
             fitted(r, 139, y + 9, &text, 605, 35, Color::TEXT);
         }
@@ -1070,10 +1089,11 @@ fn centered_lines(
             format!("{line} {word}")
         };
         if text_width(&candidate, size) > width && !line.is_empty() {
+            let bounded = crate::typography::ellipsized(&line, width, size);
             r.text(
-                x + (width - text_width(&line, size)) / 2,
+                x + (width - text_width(&bounded, size)) / 2,
                 y + row * line_height,
-                &line,
+                &bounded,
                 size,
                 Color::TEXT,
             );
@@ -1083,10 +1103,11 @@ fn centered_lines(
             line = candidate;
         }
     }
+    let bounded = crate::typography::ellipsized(&line, width, size);
     r.text(
-        x + (width - text_width(&line, size)) / 2,
+        x + (width - text_width(&bounded, size)) / 2,
         y + row * line_height,
-        &line,
+        &bounded,
         size,
         Color::TEXT,
     );
@@ -1096,6 +1117,17 @@ fn centered_lines(
 mod tests {
     use super::*;
     use mazda_core::{Gear, PlaybackState, SpeedKph, TemperatureC};
+    #[test]
+    fn oversized_localized_dialog_words_are_bounded_without_alignment_underflow() {
+        let mut frame = crate::Framebuffer::mazda_connect();
+        centered_lines(&mut frame, &"W".repeat(1024), 77, 150, 646, 35, 42);
+        assert!(frame.pixels().iter().any(|&p| p != 0));
+        for (index, &pixel) in frame.pixels().iter().enumerate() {
+            if !(77..723).contains(&(index % 800)) {
+                assert_eq!(pixel, 0);
+            }
+        }
+    }
     struct Fixture;
     impl MazdaReadOnly for Fixture {
         fn vehicle_snapshot(&self) -> VehicleSnapshot {
@@ -1524,5 +1556,92 @@ mod tests {
         ui.handle_pointer(10, 200);
         assert_eq!(ui.display.reset, None);
         assert_eq!(ui.display.values.brightness, 3);
+    }
+    #[test]
+    fn language_route_changes_real_lookup_after_confirmation_and_success_only() {
+        let mut ui = UiModel::from_source(&Fixture);
+        let mut assets = StockAssets::default();
+        assert!(assets.load_languages(&crate::languages::fixture()));
+        assert!(!assets.load_languages(b"invalid"));
+        ui.set_assets(assets);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 7;
+        ui.settings_rows = true;
+        ui.row = 2;
+        let observations = ui.vehicle.clone();
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.language.page, LanguagePage::List { focus: 0 });
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(
+            ui.language.page,
+            LanguagePage::Confirm {
+                target: 1,
+                yes: false
+            }
+        );
+        assert_eq!(ui.tr("syssettings", "Language"), "Language A");
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.set_language_change_failure(true);
+        ui.advance_simulation(std::time::Duration::from_secs(2));
+        assert!(matches!(
+            ui.language.page,
+            LanguagePage::Error { yes: false, .. }
+        ));
+        assert_eq!(ui.language_code(), "en_US");
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.set_language_change_failure(false);
+        ui.advance_simulation(std::time::Duration::from_secs(2));
+        assert_eq!(ui.language_code(), "fr_CN");
+        assert_eq!(ui.tr("syssettings", "Language"), "Language B");
+        assert_eq!(ui.tab_label(7, "System"), "System B");
+        assert_eq!(ui.tr("syssettings", "System"), "Mode B");
+        assert_eq!(ui.tab_label(4, "Clock"), "Clock B");
+        assert_eq!(ui.vehicle, observations);
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.row, 2);
+        assert!(ui.settings_rows);
+        assert!(!ui.set_host_language("missing"));
+        assert_eq!(ui.language_code(), "fr_CN");
+        ui.row = 4;
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.advance_simulation(std::time::Duration::from_secs(2));
+        assert_eq!(ui.language_code(), "en_US");
+    }
+    #[test]
+    fn language_pointer_confirmation_and_global_exit_preserve_selected_locale() {
+        let mut ui = UiModel::from_source(&Fixture);
+        let mut assets = StockAssets::default();
+        assets.load_languages(&crate::languages::fixture());
+        ui.set_assets(assets);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 7;
+        ui.settings_rows = true;
+        ui.row = 2;
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_pointer(300, 220);
+        assert_eq!(
+            ui.language.page,
+            LanguagePage::Confirm {
+                target: 1,
+                yes: false
+            }
+        );
+        ui.handle_pointer(200, 420);
+        assert_eq!(ui.language.page, LanguagePage::List { focus: 0 });
+        assert_eq!(ui.language_code(), "en_US");
+        ui.handle_pointer(300, 220);
+        ui.handle_pointer(600, 420);
+        assert!(matches!(ui.language.page, LanguagePage::Progress { .. }));
+        ui.handle_commander(CommanderEvent::Home);
+        ui.advance_simulation(std::time::Duration::MAX);
+        assert_eq!(ui.language_code(), "en_US");
+        assert_eq!(ui.language.page, LanguagePage::Closed);
+        ui.handle_pointer(usize::MAX, usize::MAX);
+        assert_eq!(ui.language_code(), "en_US");
     }
 }
