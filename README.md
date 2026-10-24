@@ -1,4 +1,7 @@
-# mazda-os
+# llkj-mazdaOS-rust
+
+Owner fork: [llkj11/llkj-mazdaOS-rust](https://github.com/llkj11/llkj-mazdaOS-rust).
+The firmware-based UI conversion is merged into `main`; upstream history is retained.
 
 ## This fork: 2018 Mazda6 desktop development
 

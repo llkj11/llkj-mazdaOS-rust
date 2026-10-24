@@ -162,7 +162,7 @@ fn configure_fixtures(
     {
         let fixture = arguments.get(index + 1).and_then(|arg| arg.to_str())
             .and_then(mazda_ui::BluetoothFixture::parse)
-            .ok_or("--bluetooth-fixture requires empty, paired, ssp, pair-fails, connect-fails, disconnect-fails or delete-fails")?;
+            .ok_or("--bluetooth-fixture requires empty, paired, ssp, legacy, pair-fails, connect-fails, disconnect-fails or delete-fails")?;
         ui.set_bluetooth_fixture(fixture);
     }
     if let Some(index) = arguments.iter().position(|arg| arg == "--music-update") {
@@ -490,6 +490,7 @@ mod tests {
             "empty",
             "paired",
             "ssp",
+            "legacy",
             "pair-fails",
             "connect-fails",
             "disconnect-fails",

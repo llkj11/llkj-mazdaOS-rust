@@ -7,6 +7,7 @@ pub enum BluetoothFixture {
     Empty,
     Paired,
     Ssp,
+    Legacy,
     PairFails,
     ConnectFails,
     DisconnectFails,
@@ -19,6 +20,7 @@ impl BluetoothFixture {
             "empty" => Self::Empty,
             "paired" => Self::Paired,
             "ssp" => Self::Ssp,
+            "legacy" => Self::Legacy,
             "pair-fails" => Self::PairFails,
             "connect-fails" => Self::ConnectFails,
             "disconnect-fails" => Self::DisconnectFails,
@@ -37,6 +39,7 @@ pub(crate) enum BtPage {
     Profiles,
     Discoverable,
     NumericConfirm,
+    LegacyConfirm,
     Pairing,
     PairSuccess,
     Connecting,
@@ -69,6 +72,7 @@ impl BtPage {
             self,
             Self::Discoverable
                 | Self::NumericConfirm
+                | Self::LegacyConfirm
                 | Self::Pairing
                 | Self::PairSuccess
                 | Self::Connecting
@@ -100,9 +104,11 @@ impl BtPage {
             | Self::DisconnectFailed
             | Self::DeleteFailed
             | Self::PrePairFailed => 2,
-            Self::Information | Self::Discoverable | Self::PreparingPair | Self::ConfirmCarPlay => {
-                1
-            }
+            Self::Information
+            | Self::Discoverable
+            | Self::LegacyConfirm
+            | Self::PreparingPair
+            | Self::ConfirmCarPlay => 1,
             _ => 0,
         }
     }
@@ -343,7 +349,10 @@ impl BluetoothSession {
                 self.show(BtPage::Settings);
                 self.focus = 1;
             }
-            BtPage::Discoverable | BtPage::NumericConfirm | BtPage::PreparingPair => {
+            BtPage::Discoverable
+            | BtPage::NumericConfirm
+            | BtPage::LegacyConfirm
+            | BtPage::PreparingPair => {
                 self.show(BtPage::Cancelling);
             }
             BtPage::ConfirmDelete | BtPage::DeleteFailed => self.return_delete_origin(),
@@ -455,7 +464,9 @@ impl BluetoothSession {
                 _ => {}
             },
             BtPage::Information => self.show(BtPage::Settings),
-            BtPage::Discoverable | BtPage::PreparingPair => self.show(BtPage::Cancelling),
+            BtPage::Discoverable | BtPage::LegacyConfirm | BtPage::PreparingPair => {
+                self.show(BtPage::Cancelling);
+            }
             NumericConfirm => self.show(if self.focus == 2 && allowed {
                 BtPage::Pairing
             } else {
@@ -496,17 +507,21 @@ impl BluetoothSession {
         if self.page == BtPage::Discoverable {
             let incoming = matches!(
                 self.fixture,
-                BluetoothFixture::Ssp | BluetoothFixture::PairFails
+                BluetoothFixture::Ssp | BluetoothFixture::Legacy | BluetoothFixture::PairFails
             );
             if incoming && self.elapsed_ms >= 1500 {
-                self.show(BtPage::NumericConfirm);
+                self.show(if self.fixture == BluetoothFixture::Legacy {
+                    BtPage::LegacyConfirm
+                } else {
+                    BtPage::NumericConfirm
+                });
             } else if self.elapsed_ms >= 180_000 {
                 self.timed_out = true;
                 self.show(BtPage::PairFailed);
             }
             return;
         }
-        if self.page == BtPage::NumericConfirm {
+        if matches!(self.page, BtPage::NumericConfirm | BtPage::LegacyConfirm) {
             if self.elapsed_ms >= 30_000 {
                 self.timed_out = true;
                 self.show(BtPage::PairFailed);
@@ -668,10 +683,38 @@ mod tests {
         assert_eq!(session.devices[0].roles, 3);
     }
     #[test]
+    fn legacy_pairing_only_offers_cancel_and_never_accepts_on_the_head_unit() {
+        for cancel in [CommanderEvent::Select, CommanderEvent::Back] {
+            let mut session = configured(BluetoothFixture::Legacy);
+            session.focus = 2;
+            select(&mut session);
+            assert_eq!(session.page, BtPage::Discoverable);
+            session.advance(1499, true, true);
+            assert_eq!(session.page, BtPage::Discoverable);
+            session.advance(1, true, true);
+            assert_eq!(session.page, BtPage::LegacyConfirm);
+            assert_eq!(session.page.button_count(), 1);
+            assert_eq!(session.focus, 0);
+            session.rotate(true, true, true);
+            session.rotate(false, true, true);
+            assert_eq!(session.focus, 0);
+            session.advance(29_999, true, true);
+            assert_eq!(session.page, BtPage::LegacyConfirm);
+            assert!(session.devices.is_empty());
+            session.event(cancel, true, true);
+            assert_eq!(session.page, BtPage::Cancelling);
+            session.advance(1500, true, true);
+            assert_eq!(session.page, BtPage::Manager);
+            assert!(session.devices.is_empty());
+            assert_eq!(session.pair_code, "0000");
+        }
+    }
+    #[test]
     fn search_and_numeric_confirmation_timeout_without_adding_a_device() {
         for (page, limit) in [
             (BtPage::Discoverable, 180_000),
             (BtPage::NumericConfirm, 30_000),
+            (BtPage::LegacyConfirm, 30_000),
         ] {
             let mut session = configured(BluetoothFixture::Empty);
             session.show(page);
@@ -756,6 +799,7 @@ mod tests {
         for page in [
             BtPage::Discoverable,
             BtPage::NumericConfirm,
+            BtPage::LegacyConfirm,
             BtPage::Pairing,
             BtPage::PairSuccess,
             BtPage::Connecting,

@@ -14,7 +14,7 @@ Static declaration extraction currently finds these contexts:
 | syssettings | 28 | 115 | Display, Clock, System/info/reset and four NA language-flow contexts implemented in host state; global languages, communication/devices and live services remain |
 | audiosettings | 1 | 0 | SoundTab host controls implemented for standard/Bose/Bose J12; real services, guidance SBN and detailed timing remain |
 | vehsettings | 81 | 176 | Catalogued; full native implementation and verification pending |
-| btpairing | 35 | 12 | Catalogued; full native implementation and verification pending |
+| btpairing | 35 | 12 | 25 source-guided host contexts with partial simulated services; ten contexts and real service integration remain |
 | netmgmt | 16 | 0 | Catalogued; full native implementation and verification pending |
 | sysupdate | 31 | 2 | SoftwareInfo unavailable-state dialog implemented; update/search/install contexts and services remain |
 
@@ -80,11 +80,17 @@ native app must be exercised. The complete goal is still active.
   and all remaining Settings work continue to be required.
 
 - Devices/Bluetooth: the NA Devices root, optional projection preference fixture,
-  CarPlay disable dialog, and 24 btpairing contexts have native host routes. This
+  CarPlay disable dialog, and 25 btpairing contexts have native host routes. This
   includes normal List2 profile/device lists, source Dialog3 pairing/connection/
   unpair flows, and the original four-digit DialPad2 keypad. See
-  [coverage and limits](BLUETOOTH_PORT.md). Eleven btpairing contexts, real service
-  payloads/notifications, legacy pairing, projection-active restrictions and global
+  [coverage and limits](BLUETOOTH_PORT.md). Ten btpairing contexts, real service
+  payloads/notifications, legacy completion/error handling, projection-active restrictions and global
   region/equipment variants remain. These host contexts are partial implementation
   evidence, not completion of the 192-context scope. Bluetooth/projection interaction
   with System factory reset still requires source tracing and integration.
+
+
+- Repository consolidation: the checked firmware UI branch was merged into main
+  at edc93fb, and the owner fork was renamed to llkj11/llkj-mazdaOS-rust. The next
+  branch adds the source legacy four-digit pairing display, Cancel-only behavior
+  and 30-second timeout; it does not manufacture phone-side completion.

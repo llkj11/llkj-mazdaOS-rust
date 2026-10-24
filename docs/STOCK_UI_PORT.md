@@ -282,3 +282,9 @@ remaining contexts and host-only limits. Older artwork imports need refreshing
 into an empty destination: 94 fixed images plus the updated seven-app language
 catalog are required. The importer now decodes the original static GIF unpair icon
 as bounded data; no firmware code is executed.
+
+
+The owner fork is now [llkj11/llkj-mazdaOS-rust](https://github.com/llkj11/llkj-mazdaOS-rust),
+with the checked stock UI conversion merged into `main`. The 0.11.1 follow-up
+adds `--bluetooth-fixture legacy`: source four-digit display and Cancel-only flow.
+Phone-side completion remains pending; see [Bluetooth scope](BLUETOOTH_PORT.md).

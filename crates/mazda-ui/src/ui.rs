@@ -1886,6 +1886,7 @@ mod tests {
             BtPage::Profiles,
             BtPage::Discoverable,
             BtPage::NumericConfirm,
+            BtPage::LegacyConfirm,
             BtPage::Pairing,
             BtPage::PairSuccess,
             BtPage::Connecting,

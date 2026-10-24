@@ -322,3 +322,14 @@ No Cargo dependency/lockfile, workflow, license or Docker service change is made
 Owner firmware, art, dictionaries, captures, PIN state and native packages remain
 local. This focused review does not certify the full firmware Bluetooth stack,
 protocols, legacy/active-projection/emergency-call behavior or on-car integration.
+
+
+## Legacy pairing follow-up
+
+Reviewed the added finite `legacy` CLI fixture, pending-context routing, Cancel-only
+button mapping, 30-second timeout and source-dictionary rendering. The displayed
+four-digit value is fixed synthetic data, separate from the PIN editor. It cannot
+create a paired device, confirm on behalf of a phone or access a real adapter.
+No dependency, lockfile, workflow, Docker service or vehicle/OS/network I/O changed.
+The source's external Connect/completion/invalid-code messages remain unimplemented;
+the timeout-to-error parent route is a documented host simulation choice.

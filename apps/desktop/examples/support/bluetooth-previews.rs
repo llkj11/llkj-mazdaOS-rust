@@ -28,6 +28,7 @@ pub fn render(directory: &Path, assets: &StockAssets) -> io::Result<()> {
         roots(directory, assets, code)?;
         paired(directory, assets, code)?;
         pairing(directory, assets, code)?;
+        legacy(directory, assets, code)?;
         failures(directory, assets, code)?;
     }
     Ok(())
@@ -175,5 +176,24 @@ fn failures(directory: &Path, assets: &StockAssets, code: &str) -> io::Result<()
     save(&ui, directory, &format!("bluetooth-{code}-preparing-pair"))?;
     advance(&mut ui, 1500);
     save(&ui, directory, &format!("bluetooth-{code}-pre-pair-failed"))?;
+    Ok(())
+}
+
+fn legacy(directory: &Path, assets: &StockAssets, code: &str) -> io::Result<()> {
+    let mut ui = fixture(assets, code, BluetoothFixture::Legacy);
+    select(&mut ui);
+    rotate(&mut ui, 2);
+    select(&mut ui);
+    advance(&mut ui, 1500);
+    save(&ui, directory, &format!("bluetooth-{code}-legacy-confirm"))?;
+    select(&mut ui);
+    save(&ui, directory, &format!("bluetooth-{code}-legacy-cancel"))?;
+    ui = fixture(assets, code, BluetoothFixture::Legacy);
+    select(&mut ui);
+    rotate(&mut ui, 2);
+    select(&mut ui);
+    advance(&mut ui, 1500);
+    advance(&mut ui, 30_000);
+    save(&ui, directory, &format!("bluetooth-{code}-legacy-timeout"))?;
     Ok(())
 }

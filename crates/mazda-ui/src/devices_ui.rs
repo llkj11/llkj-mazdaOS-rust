@@ -354,6 +354,10 @@ impl UiModel {
                 dialog_block(renderer, self.bt("NumericConfirmSSP"), 133, 120);
                 dialog_line(renderer, "123456", 271);
             }
+            BtPage::LegacyConfirm => {
+                dialog_block(renderer, self.bt("NumericConfirmLegacy"), 133, 120);
+                dialog_line(renderer, "1234", 271); // Synthetic incoming code, separate from the editor PIN.
+            }
             BtPage::Information => {
                 dialog_line(renderer, self.bt("BluetoothInformation"), 164);
                 dialog_line(renderer, "Mazda", 229);
@@ -428,7 +432,9 @@ impl UiModel {
             BtPage::ConfirmDelete => &[("common", "No"), ("common", "Yes")],
             BtPage::Information => &[("common", "Ok")],
             BtPage::ConfirmCarPlay => &[("common", "Yes")],
-            BtPage::Discoverable | BtPage::PreparingPair => &[("common", "Cancel")],
+            BtPage::Discoverable | BtPage::LegacyConfirm | BtPage::PreparingPair => {
+                &[("common", "Cancel")]
+            }
             page if page.failure() => &[("btpairing", "Back"), ("btpairing", "Retry")],
             _ => &[],
         };

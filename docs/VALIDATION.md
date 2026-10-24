@@ -336,3 +336,29 @@ new dependency/workflow was introduced; Cargo.lock and LICENSE are unchanged.
 BLUETOOTH_PORT.md lists eleven unported btpairing contexts plus other pending
 capability, reset, notification, animation and service/hardware work. This does
 not complete full Settings or the full native replacement.
+
+
+## Legacy pairing and fork consolidation (0.11.1)
+
+- Devices/Bluetooth commit 0a6b973 passed both Mac/Linux CI before merge. Main
+  merge edc93fb has the identical tree; the fork is now llkj11/llkj-mazdaOS-rust.
+- Static source tracing used NumericConfirmLegacy declarations, the ready callback,
+  Connect payload formatting, Cancel dispatch and the shared TimeOut callback.
+  It retains style05 geometry, a separate synthetic four-digit code, one Cancel
+  button and the original 30000ms timer. Firmware code was never executed.
+- Regression coverage exercises entry timing, rotation with one button, Select and
+  Back cancellation, no device creation while waiting, the exact timeout boundary,
+  and policy loss. Existing SSP behavior remains distinct.
+
+The external phone's completion/invalid-code messages and MMUI parent transition
+remain unproven. This is a host waiting/cancellation/timeout view only. The local
+legacy verification report records final build/render/native and CI results.
+
+- Final formatting, strict Clippy and all 90 Rust tests passed (UI 72). Nine new
+  legacy renders were inspected across the three NA locales; all 99 previous
+  Bluetooth and 60 music renders are byte-identical. All 161 selected firmware
+  source identities were rehashed against the original extraction inventory.
+- The independently extracted 0.11.1 package passed signature/executable/resource
+  checks and three 90-frame native startup runs (English default, Spanish legacy,
+  French legacy), each exit 0. Native keyboard checks displayed code 1234 with
+  only Cancel, then returned to an empty manager after cancellation.
