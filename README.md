@@ -9,6 +9,9 @@ CMU part number, installed firmware and runtime ABI have not been verified.
 No vehicle adapter, firmware installation, USB preparation or interlock bypass is
 part of this development path. Upstream history and the MIT license are retained.
 
+Track ongoing work in [conversion coverage](docs/CONVERSION_PROGRESS.md) and the
+[evidence-based plan for the car](docs/CMU_DEPLOYMENT_PLAN.md).
+
 The active conversion now starts from the owner's **actual NA 70.00.100A UI**.
 It restores Mazda's five circular home icons, background, red focus effect,
 category order, initial Communication selection, and bounded Commander rotation.

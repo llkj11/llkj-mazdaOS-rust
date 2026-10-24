@@ -24,5 +24,6 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: python3 tools/test-import-firmware-ui.py
+      - run: python3 tools/test-catalog-settings.py
       - run: cargo test --locked
       - run: cargo build --locked -p mazda-desktop

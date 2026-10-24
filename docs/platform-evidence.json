@@ -1,0 +1,68 @@
+{
+  "package_sha256": "5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0",
+  "inspection": "static only; no programs or scripts executed",
+  "files": [
+    {
+      "path": "lib/libc-2.11.1.so",
+      "bytes": 1152208,
+      "sha256": "b582ea1f030e2de936e9a15890246aaf697d6339161781c5f1c2bbffe7c14cfa",
+      "elf_class": 1,
+      "machine": 40,
+      "flags": "0x5000002"
+    },
+    {
+      "path": "etc/wayland/ivi-input.conf",
+      "bytes": 209,
+      "sha256": "00975c25121d17aa87fa14096de9adb3dd15ca58fae3a793426e7eb328207e18"
+    },
+    {
+      "path": "etc/wayland/compositor_jci_display.conf",
+      "bytes": 1042,
+      "sha256": "33ea6852a7c5cc67a2884a344d788ed0740c11cd1a0f5c57562acf899ba0671f"
+    },
+    {
+      "path": "etc/wayland/compositor.conf",
+      "bytes": 1052,
+      "sha256": "1342d2791832c25ec60712fc5f00263b17f38286a645f84b8e8e42798d563309"
+    },
+    {
+      "path": "usr/lib/libwayland-client.so.0.2.0",
+      "bytes": 32656,
+      "sha256": "074b6a6bb546ad81b0bd121987635340021fcbbdc1a4a851779f30ee3fe5a403",
+      "elf_class": 1,
+      "machine": 40,
+      "flags": "0x5000002"
+    },
+    {
+      "path": "jci/sm/sm.conf",
+      "bytes": 46252,
+      "sha256": "bd9e8e341f70412d7e78642dec4b319272689078191447a04123b2be159e2ec0"
+    },
+    {
+      "path": "jci/scripts/stage_1.sh",
+      "bytes": 11,
+      "sha256": "2ec71fc955d0107a6e90d1ab4e6f00c9438b56d3e621ef018d57c8ef07bfae7f"
+    },
+    {
+      "path": "jci/mmui/mmui_config.xml",
+      "bytes": 17070,
+      "sha256": "8eae97f0a97aada5ba647fd71a811d105ba13a75c16fd66d9158ed300d48d15e"
+    },
+    {
+      "path": "jci/mmui/uia/libjciuiasyssettings.so",
+      "bytes": 700134,
+      "sha256": "4253bc92d36bc221ba8b45f6bdbd11e81ed1095cc9575eeb363834a9dd19a51d",
+      "elf_class": 1,
+      "machine": 40,
+      "flags": "0x5000002"
+    },
+    {
+      "path": "jci/mmui/uia/libjciuiavehsettings.so",
+      "bytes": 741474,
+      "sha256": "579c9bd626c3ffd6bb50628d6591ef3a4ff5ef6186c75f82d49d2b52b8406483",
+      "elf_class": 1,
+      "machine": 40,
+      "flags": "0x5000002"
+    }
+  ]
+}
