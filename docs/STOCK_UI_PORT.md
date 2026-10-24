@@ -81,7 +81,7 @@ remain local under ignored `target/owner-firmware/`. The default executable refu
 to start if the original artwork is missing, rather than substituting a new UI.
 `MZD_FIRMWARE_PASSWORD` may supply the archive password non-interactively.
 Older imports need reimporting into an empty directory: the current runtime
-requires all 77 images, `clock-zones.txt`, `legal.txt` and `languages.bin`. Missing inputs fail explicitly.
+requires all 81 images, `clock-zones.txt`, `legal.txt` and `languages.bin`. Missing inputs fail explicitly.
 
 ```sh
 cargo fmt --all -- --check
@@ -257,3 +257,15 @@ does not claim completion of all Settings or the full conversion. The
 [deployment plan](CMU_DEPLOYMENT_PLAN.md) explains the older ARM/kernel/libc ABI,
 stock compositor and priority/fallback constraints that must be resolved before
 any vehicle proposal.
+
+
+## Music Database Update
+
+The System entry now opens the original update dialogs and package list. Run
+`cargo run --locked -p mazda-desktop -- --music-update available` to use synthetic
+SIM-1 package data. Normal launch has no update media. See
+[MUSIC_UPDATE_PORT.md](MUSIC_UPDATE_PORT.md) for all fixtures, 15 context mappings,
+source identities and limits. Refresh older artwork imports to obtain the four
+additional original images (81 fixed images total). Preserve earlier extractions
+and use the importer's required empty destination. No updater or vehicle write
+is included.

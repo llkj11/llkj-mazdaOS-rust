@@ -20,6 +20,10 @@ from firmware_languages import language_assets
 PACKAGE_SHA256 = '5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0'
 GUI_PREFIX = 'jci/gui/'
 ASSETS = {
+    'update-spinner': 'common/images/IndeterminateMeter_2.png',
+    'update-progress-bg': 'common/controls/Dialog3/images/Dialog_ProgressBar_Background.png',
+    'update-progress-fill': 'common/controls/Dialog3/images/Dialog_ProgressBar_Highlight.png',
+    'update-title-separator': 'common/controls/Dialog3/images/TitleSeparatorLine-1.png',
     'language-voice': 'apps/syssettings/images/voice_recognition.png',
     'left-back': 'common/controls/LeftBtn/images/BtnLeft_En.png',
     'left-back-disabled': 'common/controls/LeftBtn/images/BtnLeft_Ds.png',

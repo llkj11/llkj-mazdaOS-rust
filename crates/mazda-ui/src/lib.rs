@@ -2,6 +2,7 @@
 mod clock;
 mod graphics;
 mod languages;
+mod music_update;
 mod preferences;
 mod settings;
 mod sound;
@@ -12,6 +13,7 @@ mod ui;
 
 pub use clock::{ClockPreferences, TimeFormat};
 pub use graphics::{Color, Framebuffer, Rect, Renderer};
+pub use music_update::MusicUpdateFixture;
 pub use preferences::{Preferences, Theme, Units};
 pub use settings::{DisplayMode, DisplayPower, DisplayPreferences};
 pub use sound::{SoundControl, SoundPreferences, SoundProfile};

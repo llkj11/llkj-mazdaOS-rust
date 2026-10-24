@@ -57,8 +57,7 @@ error. A catalogued screen does not imply its routing, layout or behavior works.
   independent temperature/distance rows, About, owner-local scrollable disclosures,
   unavailable version dialog, and No/Yes restore/progress are implemented. Reset
   changes only implemented host preferences and preserves equipment/observations.
-  Its 1500ms mock completion is not OEM service timing. Music database update
-  remains disconnected, requiring conversion.
+  Its 1500ms mock completion is not OEM service timing. Music database update now has 15 source-guided host contexts, described below.
   Shared original Back artwork and full-screen reset chrome are restored.
 
 - Language: NA English/Spanish/Canadian French selector, confirmation, progress,
@@ -72,3 +71,10 @@ Every context/control needs source evidence, implemented routes, rendered fideli
 checks and behavioral tests covering normal, unavailable and restricted states.
 Owner assets stay local. CI must pass for pushed source, and the latest packaged
 native app must be exercised. The complete goal is still active.
+
+- Music Database Update: 15 original sysupdate contexts now have native host
+  routes and source Dialog3/List2 layouts, including finite success/failure/retry
+  fixtures. Four additional source images bring the fixed set to 81; no real
+  media or updater is connected. See [scope and limits](MUSIC_UPDATE_PORT.md).
+  Animated PNG frames, dynamic real-service responses, software/fail-safe updates
+  and all remaining Settings work continue to be required.

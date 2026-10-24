@@ -677,6 +677,31 @@
       "path": "jci/gui/resources/js/sysupdate/sysupdateAppDict_fr_CN.js",
       "bytes": 5327,
       "sha256": "2331f8e308ec46814bd973d2af4e6ff9e80e9ff416a3a5ff3ba796c27c300b6a"
+    },
+    {
+      "path": "jci/gui/common/images/IndeterminateMeter_2.png",
+      "bytes": 43620,
+      "sha256": "eb0628414e35f5464c8455444743500655fad5779e2129435884bcb5f099a438"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_ProgressBar_Background.png",
+      "bytes": 211,
+      "sha256": "53eac0554a830978b9ba4204f6802926f7f1b97b65cf888680ff08f08f9089bc"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_ProgressBar_Highlight.png",
+      "bytes": 190,
+      "sha256": "03dd6d49d284af41b73ab5b442e88c48467149df3c000fcc8dc18b4e5724e28a"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/TitleSeparatorLine-1.png",
+      "bytes": 128,
+      "sha256": "ff95a983fb873e3d4edefca0bbb9d02c57a0ee19f9f4766f95583a5a6230161f"
+    },
+    {
+      "path": "jci/gui/common/templates/Dialog3/css/Dialog3Tmplt.css",
+      "bytes": 84,
+      "sha256": "dfeaef80d480811ca517aff5f981f19d90367c37d70c7fa6cf741618618d57a1"
     }
   ]
 }

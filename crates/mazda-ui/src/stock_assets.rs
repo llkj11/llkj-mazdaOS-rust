@@ -94,7 +94,11 @@ pub struct StockAssets {
     pub(crate) languages: crate::languages::LanguageCatalog,
 }
 impl StockAssets {
-    pub const NAMES: [&'static str; 77] = [
+    pub const NAMES: [&'static str; 81] = [
+        "update-spinner",
+        "update-progress-bg",
+        "update-progress-fill",
+        "update-title-separator",
         "language-voice",
         "left-back",
         "left-back-disabled",

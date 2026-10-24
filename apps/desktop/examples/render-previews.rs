@@ -9,6 +9,8 @@ use std::{
 };
 #[path = "../src/assets.rs"]
 mod assets;
+#[path = "support/music-previews.rs"]
+mod music_previews;
 fn save(ui: &UiModel, directory: &Path, name: &str) -> io::Result<()> {
     let mut frame = Framebuffer::mazda_connect();
     ui.render(&mut frame);
@@ -47,6 +49,7 @@ fn main() -> io::Result<()> {
     clock_previews(directory, &artwork)?;
     system_previews(directory, &artwork)?;
     language_previews(directory, &artwork)?;
+    music_previews::render(directory, &artwork)?;
     let mock = MockMazda::demo();
     let mut ui = UiModel::from_source(&mock);
     ui.set_assets(artwork);

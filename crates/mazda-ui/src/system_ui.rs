@@ -11,6 +11,7 @@ impl UiModel {
         self.system.equipment = equipment;
         self.system.page = SystemPage::Root;
         self.language.page = super::LanguagePage::Closed;
+        self.music_update.page = super::MusicPage::Closed;
         self.row = self.row.min(self.rows().len().saturating_sub(1));
     }
     /// Advance deterministic host operations only; no real clock/settings transport.
@@ -18,6 +19,11 @@ impl UiModel {
         let elapsed_ms = u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX);
         self.language
             .advance(elapsed_ms, self.vehicle.is_confirmed_parked());
+        self.music_update.advance(
+            elapsed_ms,
+            self.vehicle.is_confirmed_parked(),
+            self.system.equipment.services_ready,
+        );
         if self
             .system
             .advance(elapsed_ms, self.vehicle.is_confirmed_parked())
@@ -37,12 +43,14 @@ impl UiModel {
             self.system.values = SystemPreferences::default();
             self.language.current = 0;
             self.language.page = super::LanguagePage::Closed;
+            self.music_update.page = super::MusicPage::Closed;
         }
     }
     pub(super) fn system_child(&self) -> bool {
         self.screen == Screen::Settings
             && self.settings_tab == 7
             && (self.system.page != SystemPage::Root
+                || self.music_update.page != super::MusicPage::Closed
                 || self.language.page != super::LanguagePage::Closed)
     }
     fn legal_title_lines(&self) -> Vec<String> {
@@ -243,6 +251,10 @@ impl UiModel {
         }
     }
     pub(super) fn render_system_child(&self, r: &mut impl Renderer) {
+        if self.music_update.page != super::MusicPage::Closed {
+            self.render_music_update(r);
+            return;
+        }
         if self.language.page != super::LanguagePage::Closed {
             self.render_language(r);
             return;

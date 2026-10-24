@@ -24,7 +24,10 @@ impl UiModel {
         self.loc(app, key, fallback)
     }
     pub(super) fn status_dictionary(&self) -> &'static str {
-        if self.system_child() && self.system.page == SystemPage::Version {
+        if self.system_child()
+            && (self.system.page == SystemPage::Version
+                || self.music_update.page != super::MusicPage::Closed)
+        {
             "sysupdate"
         } else if self.screen == super::Screen::Settings {
             "syssettings"
@@ -83,6 +86,7 @@ impl UiModel {
     pub(super) fn full_screen_dialog(&self) -> bool {
         self.system_child()
             && (self.language.full_screen()
+                || self.music_update.page.full_screen()
                 || matches!(
                     self.system.page,
                     SystemPage::Confirm { .. } | SystemPage::Progress { .. }

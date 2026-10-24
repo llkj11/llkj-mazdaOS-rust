@@ -30,8 +30,10 @@ and daylight-saving preference. These remain in memory; no GPS, time-zone
 calculation or Mac clock setting is connected. System adds Tool Tips/VR Examples,
 conditional unit preferences, About/disclosures, unavailable version information
 and restore of implemented host preferences. The original language selector now changes existing screen text using NA English,
-Spanish and Canadian French dictionaries; full global language/voice support and
-music database updates remain pending. The default Touring fixture uses standard audio and no HUD; explicit
+Spanish and Canadian French dictionaries. The [Music Database Update screens](docs/MUSIC_UPDATE_PORT.md)
+now support source-guided search, selection, confirmation, progress, errors and retry
+with synthetic service data; no USB scanning or updater is connected. Full global
+language/voice support remains pending. The default Touring fixture uses standard audio and no HUD; explicit
 `--audio-profile bose`, `--audio-profile bose-j12` and `--hud` fixtures retain the
 other source layouts for testing. Remaining Settings contexts, radio, phone, maps, cameras and actual
 vehicle services still require conversion or integration.

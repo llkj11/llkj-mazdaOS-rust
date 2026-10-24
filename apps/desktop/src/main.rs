@@ -155,6 +155,12 @@ fn configure_fixtures(
         new_cmu: arguments.iter().any(|arg| arg == "--new-cmu"),
     });
     ui.set_language_change_failure(arguments.iter().any(|arg| arg == "--language-change-fails"));
+    if let Some(index) = arguments.iter().position(|arg| arg == "--music-update") {
+        let fixture = arguments.get(index + 1).and_then(|arg| arg.to_str())
+            .and_then(mazda_ui::MusicUpdateFixture::parse)
+            .ok_or("--music-update requires no-media, available, search-fails, invalid, install-fails, retry-invalid, unavailable or needs-failsafe")?;
+        ui.set_music_update_fixture(fixture);
+    }
     if let Some(index) = arguments.iter().position(|arg| arg == "--language") {
         let code = arguments
             .get(index + 1)
@@ -425,5 +431,35 @@ mod tests {
             assert_eq!(commander_button_event(key), Some(event));
         }
         assert_eq!(commander_button_event(Key::Right), None);
+    }
+    #[test]
+    fn music_fixture_parser_rejects_missing_or_arbitrary_inputs() {
+        let mock = MockMazda::demo();
+        let mut ui = UiModel::from_source(&mock);
+        for values in [
+            vec!["app", "--music-update"],
+            vec!["app", "--music-update", "/Volumes/USB/update"],
+        ] {
+            let args: Vec<_> = values.iter().map(std::ffi::OsString::from).collect();
+            assert!(
+                super::configure_fixtures(&mut ui, &args, mazda_ui::SoundProfile::Standard)
+                    .is_err()
+            );
+        }
+        for value in [
+            "no-media",
+            "available",
+            "search-fails",
+            "invalid",
+            "install-fails",
+            "retry-invalid",
+            "unavailable",
+            "needs-failsafe",
+        ] {
+            let args = ["app", "--music-update", value].map(std::ffi::OsString::from);
+            assert!(
+                super::configure_fixtures(&mut ui, &args, mazda_ui::SoundProfile::Standard).is_ok()
+            );
+        }
     }
 }

@@ -276,3 +276,23 @@ cache holds at most 16 entries with 4096 input scalars each; existing text/glyph
 bounds and disabled font hinting remain. No crates, lockfile changes, new native
 libraries, Docker services or vehicle integration are introduced. This focused
 review does not certify all translations, scripts/fonts or the complete firmware.
+
+
+## Music database UI increment
+
+Reviewed the new Rust state/renderer modules, desktop fixture parsing, importer
+allowlist changes and deterministic render helper. Eight allowlisted fixture
+names select synthetic results; filenames, URLs and update payloads are not
+accepted. All operations are session-only; the new modules add no filesystem,
+network, process, credential, USB, vehicle or OS-setting calls. The default reports
+no media. Source labels mentioning vehicle restart do not call any restart API.
+Loss of Park/readiness cancels pending host work before the mock version changes.
+Timers saturate and enter at most one context per advance. Existing image/text
+bounds remain. Four PNGs were rehashed against the extraction inventory and
+converted as data; the source APNG contributes only its default PNG frame.
+
+No dependencies or lockfile changes, unsafe blocks, new CI/install commands or
+Docker services were added. Owner art, dictionaries, firmware and native app
+packages remain local and ignored. This focused code/static-data review does not
+certify the firmware's real updater, service protocols, APNG frames or complete
+firmware behavior. The host mock is deliberately unsuitable as an installer.

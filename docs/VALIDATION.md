@@ -255,3 +255,41 @@ inventory. No firmware JavaScript, native program or voice engine was run. No
 Docker service applies, and no OS language setting or vehicle was changed. Full
 Settings, other Mazda domains, OEM timing/services and car runtime remain active
 work, as recorded in the conversion ledger and deployment plan.
+
+
+## Music Database Update host increment (0.10.0)
+
+- Static mapping covers 15 music contexts in sysupdate, Dialog3 styles
+  02/03/13/17/23, and normal style06 List2 rows. Four additional PNG identities
+  bring the fixed image set to 81. All 140 selected identities were rehashed and
+  matched byte-for-byte metadata in the original extraction inventory.
+- Formatting and strict Clippy passed. The 76 Rust tests (core 3, desktop 10,
+  mock 4, UI 59), 12 importer tests and 5 catalog tests passed. New checks cover
+  confirmation/current-row behavior, cancellation, failures and explicit retry,
+  Park/readiness revocation, timer saturation, pointer routing and all 15 renders.
+- Generated and visually inspected 60 deterministic Rust screenshots in the three
+  NA locales. Contact sheets and individual images remain owner-local. They are
+  not an independent Opera rendering oracle. Source one-line ellipsis is retained
+  for the longer retry-validation certificate error in Spanish/French.
+- Live native Mac keyboard checks exercised search → package list → confirmation,
+  Back cancellation, Driving-disabled Install, success and return to the originating
+  row. A French failure fixture exercised Retry and Back through the source UI.
+  Screenshots were saved locally. Real Mac pointer activation remains unverified.
+- The final 0.10.0 ZIP was independently extracted; its ad-hoc signature verified,
+  its signed executable matched the signed build app, and all 81 images plus
+  dictionaries/zones/legal text were present. Three 90-frame native startup runs
+  of that exact extracted executable (English default, Spanish invalid fixture,
+  French retry-invalid fixture) exited 0. Startup smoke checks do not exercise
+  every interaction. The final package's default no-media path is checked separately
+  in the local delivery evidence. That check found a wider Inter run touching
+  the shared Back arc; an inward text-fitting clearance fixed it while keeping
+  the source center and panel geometry.
+- Cargo.lock and LICENSE are unchanged. No dependencies, Docker services or new
+  GitHub Actions/install commands were introduced. No firmware program executed,
+  USB device was scanned, update payload read, system restarted or car connected.
+
+The source APNG meter is currently a static default frame. Mock transition timings,
+one SIM-1 package, finite error fixtures and host revocation rules do not establish
+real OEM updater behavior. Dynamic services, auto-update notifications, software/
+fail-safe update contexts, other Settings branches and hardware deployment remain
+required; see MUSIC_UPDATE_PORT.md and CMU_DEPLOYMENT_PLAN.md.

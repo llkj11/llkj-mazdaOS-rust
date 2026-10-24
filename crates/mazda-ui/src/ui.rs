@@ -2,6 +2,7 @@
 //! Source mapping is documented in `docs/STOCK_UI_PORT.md`. No firmware JS executes.
 use crate::clock::{ClockPage, ClockSession, CLOCK_ROWS};
 use crate::languages::{LanguagePage, LanguageSession};
+use crate::music_update::{MusicPage, MusicUpdateSession};
 use crate::settings::DisplaySession;
 use crate::sound::SoundSession;
 use crate::system_settings::{SystemPage, SystemSession};
@@ -15,6 +16,8 @@ use std::sync::Arc;
 mod clock_ui;
 #[path = "language_ui.rs"]
 mod language_ui;
+#[path = "music_update_ui.rs"]
+mod music_update_ui;
 #[path = "sound_ui.rs"]
 mod sound_ui;
 #[path = "system_ui.rs"]
@@ -122,6 +125,7 @@ pub struct UiModel {
     clock: ClockSession,
     system: SystemSession,
     language: LanguageSession,
+    music_update: MusicUpdateSession,
 }
 impl UiModel {
     #[must_use]
@@ -143,6 +147,7 @@ impl UiModel {
             clock: ClockSession::default(),
             system: SystemSession::default(),
             language: LanguageSession::default(),
+            music_update: MusicUpdateSession::default(),
         }
     }
     pub fn set_assets(&mut self, assets: StockAssets) {
@@ -159,6 +164,7 @@ impl UiModel {
             .current
             .min(self.assets.languages.packs.len().saturating_sub(1));
         self.language.page = LanguagePage::Closed;
+        self.music_update.page = MusicPage::Closed;
     }
     pub fn refresh(&mut self, source: &impl MazdaReadOnly) {
         self.vehicle = source.vehicle_snapshot();
@@ -166,6 +172,10 @@ impl UiModel {
         self.clock.restrict(self.vehicle.is_confirmed_parked());
         self.system.restrict(self.vehicle.is_confirmed_parked());
         self.language.restrict(self.vehicle.is_confirmed_parked());
+        self.music_update.restrict(
+            self.vehicle.is_confirmed_parked(),
+            self.system.equipment.services_ready,
+        );
         if !self.vehicle.is_confirmed_parked() {
             self.display.cancel_interaction();
             self.sound.cancel_interaction();
@@ -333,6 +343,7 @@ impl UiModel {
         self.clock.page = ClockPage::Root;
         self.system.page = SystemPage::Root;
         self.language.page = LanguagePage::Closed;
+        self.music_update.page = MusicPage::Closed;
         self.screen = screen;
         self.row = 0;
         self.settings_rows = false;
@@ -494,6 +505,13 @@ impl UiModel {
         let parked = self.vehicle.is_confirmed_parked();
         if self.settings_tab == 7
             && self
+                .music_update
+                .event(event, parked, self.system.equipment.services_ready)
+        {
+            return true;
+        }
+        if self.settings_tab == 7
+            && self
                 .language
                 .event(event, parked, self.assets.languages.packs.len())
         {
@@ -512,6 +530,17 @@ impl UiModel {
         }
     }
     fn select_row(&mut self) {
+        if self.screen == Screen::Settings
+            && self.settings_tab == 7
+            && self.system.controls().get(self.row) == Some(&crate::SystemControl::MusicDatabase)
+            && self.vehicle.is_confirmed_parked()
+        {
+            self.music_update.open();
+            self.music_update
+                .restrict(true, self.system.equipment.services_ready);
+            self.notice = None;
+            return;
+        }
         if self.screen == Screen::Settings
             && self.settings_tab == 7
             && self.system.controls().get(self.row) == Some(&crate::SystemControl::Language)
@@ -659,6 +688,10 @@ impl UiModel {
             return true;
         }
         if self.system_child() {
+            if self.music_update.page != MusicPage::Closed {
+                self.music_update_pointer(x, y);
+                return true;
+            }
             if self.language.page != LanguagePage::Closed {
                 self.language_pointer(x, y);
                 return true;
@@ -692,6 +725,7 @@ impl UiModel {
                 renderer,
                 if matches!(self.system.page, SystemPage::Progress { .. })
                     || matches!(self.language.page, LanguagePage::Progress { .. })
+                    || self.music_update.page.busy()
                 {
                     "left-back-disabled"
                 } else {
@@ -725,7 +759,9 @@ impl UiModel {
                     } else if self.clock_child() {
                         "System Settings"
                     } else if self.system_child() {
-                        if self.system.page == SystemPage::Version {
+                        if self.system.page == SystemPage::Version
+                            || self.music_update.page != MusicPage::Closed
+                        {
                             "System Update"
                         } else if matches!(
                             self.system.page,
@@ -1643,5 +1679,73 @@ mod tests {
         assert_eq!(ui.language.page, LanguagePage::Closed);
         ui.handle_pointer(usize::MAX, usize::MAX);
         assert_eq!(ui.language_code(), "en_US");
+    }
+    #[test]
+    fn music_update_routes_preserve_system_selection_and_require_policy() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 7;
+        ui.settings_rows = true;
+        ui.row = 3;
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.music_update.page, MusicPage::Search);
+        assert_eq!(ui.music_update.focus, 1);
+        assert_eq!(ui.status_dictionary(), "sysupdate");
+        ui.handle_pointer(140, 420);
+        assert_eq!(ui.music_update.page, MusicPage::Closed);
+        assert_eq!(ui.row, 3);
+        ui.set_music_update_fixture(crate::MusicUpdateFixture::Available);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_pointer(600, 420);
+        ui.advance_simulation(std::time::Duration::from_millis(1200));
+        ui.handle_pointer(500, 220);
+        assert_eq!(ui.music_update.page, MusicPage::Confirm);
+        ui.handle_pointer(140, 420);
+        assert_eq!(ui.music_update.page, MusicPage::Packages);
+        ui.handle_pointer(500, 220);
+        ui.handle_pointer(600, 420);
+        ui.advance_simulation(std::time::Duration::from_millis(800));
+        assert!(ui.full_screen_dialog());
+        ui.handle_pointer(140, 420);
+        assert_eq!(ui.music_update.page, MusicPage::Installing);
+        ui.system.equipment.services_ready = false;
+        ui.advance_simulation(std::time::Duration::MAX);
+        assert_eq!(ui.music_update.page, MusicPage::Search);
+        assert_eq!(ui.simulated_music_version(), None);
+        ui.handle_pointer(600, 420);
+        assert_eq!(ui.music_update.page, MusicPage::Closed);
+        assert_eq!(ui.vehicle, Fixture.vehicle_snapshot());
+    }
+    #[test]
+    fn music_update_all_source_contexts_render_and_home_cancels_host_work() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 7;
+        for page in [
+            MusicPage::Search,
+            MusicPage::Searching,
+            MusicPage::Packages,
+            MusicPage::Confirm,
+            MusicPage::Preparing,
+            MusicPage::Installing,
+            MusicPage::Retrying,
+            MusicPage::Success,
+            MusicPage::SearchFailed,
+            MusicPage::NoPackages,
+            MusicPage::ValidationFailed,
+            MusicPage::RetryValidationFailed,
+            MusicPage::Unavailable,
+            MusicPage::InstallFailed,
+            MusicPage::NeedsFailsafe,
+        ] {
+            ui.music_update.page = page;
+            ui.render(&mut crate::Framebuffer::mazda_connect());
+        }
+        ui.music_update.page = MusicPage::Installing;
+        ui.handle_commander(CommanderEvent::Home);
+        ui.advance_simulation(std::time::Duration::MAX);
+        assert_eq!(ui.screen(), Screen::Home);
+        assert_eq!(ui.music_update.page, MusicPage::Closed);
+        assert_eq!(ui.simulated_music_version(), None);
     }
 }
