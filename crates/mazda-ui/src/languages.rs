@@ -131,6 +131,7 @@ impl LanguageCatalog {
                     "audiosettings",
                     "emnavi",
                     "sysupdate",
+                    "btpairing",
                 ]
                 .contains(&app.as_str())
                     || key.is_empty()

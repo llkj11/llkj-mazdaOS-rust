@@ -155,6 +155,16 @@ fn configure_fixtures(
         new_cmu: arguments.iter().any(|arg| arg == "--new-cmu"),
     });
     ui.set_language_change_failure(arguments.iter().any(|arg| arg == "--language-change-fails"));
+    ui.set_projection_fixture(arguments.iter().any(|arg| arg == "--projection-fixture"));
+    if let Some(index) = arguments
+        .iter()
+        .position(|arg| arg == "--bluetooth-fixture")
+    {
+        let fixture = arguments.get(index + 1).and_then(|arg| arg.to_str())
+            .and_then(mazda_ui::BluetoothFixture::parse)
+            .ok_or("--bluetooth-fixture requires empty, paired, ssp, pair-fails, connect-fails, disconnect-fails or delete-fails")?;
+        ui.set_bluetooth_fixture(fixture);
+    }
     if let Some(index) = arguments.iter().position(|arg| arg == "--music-update") {
         let fixture = arguments.get(index + 1).and_then(|arg| arg.to_str())
             .and_then(mazda_ui::MusicUpdateFixture::parse)
@@ -457,6 +467,35 @@ mod tests {
             "needs-failsafe",
         ] {
             let args = ["app", "--music-update", value].map(std::ffi::OsString::from);
+            assert!(
+                super::configure_fixtures(&mut ui, &args, mazda_ui::SoundProfile::Standard).is_ok()
+            );
+        }
+    }
+    #[test]
+    fn bluetooth_fixtures_reject_unknown_inputs_and_never_inspect_real_devices() {
+        let mock = MockMazda::demo();
+        let mut ui = UiModel::from_source(&mock);
+        for values in [
+            vec!["app", "--bluetooth-fixture"],
+            vec!["app", "--bluetooth-fixture", "/dev/device"],
+        ] {
+            let args: Vec<_> = values.iter().map(std::ffi::OsString::from).collect();
+            assert!(
+                super::configure_fixtures(&mut ui, &args, mazda_ui::SoundProfile::Standard)
+                    .is_err()
+            );
+        }
+        for value in [
+            "empty",
+            "paired",
+            "ssp",
+            "pair-fails",
+            "connect-fails",
+            "disconnect-fails",
+            "delete-fails",
+        ] {
+            let args = ["app", "--bluetooth-fixture", value].map(std::ffi::OsString::from);
             assert!(
                 super::configure_fixtures(&mut ui, &args, mazda_ui::SoundProfile::Standard).is_ok()
             );

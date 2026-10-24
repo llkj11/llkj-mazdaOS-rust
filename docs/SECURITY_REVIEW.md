@@ -296,3 +296,29 @@ Docker services were added. Owner art, dictionaries, firmware and native app
 packages remain local and ignored. This focused code/static-data review does not
 certify the firmware's real updater, service protocols, APNG frames or complete
 firmware behavior. The host mock is deliberately unsuitable as an installer.
+
+
+## Devices/Bluetooth host increment
+
+Reviewed the Rust session, renderer, shared dialog typography extraction, fixed
+fixture parser, seven-app dictionary allowlist, raw-image additions and new static
+GIF decoder. All Bluetooth operations mutate finite host records only. No adapter,
+phone/contact, network, process, OS-setting or vehicle I/O is added. Unknown fixture
+paths are rejected. Failed/cancelled operations retain records; successful unpair
+requires explicit Yes. Park/readiness loss revokes pending operations and consumes
+an in-flight event before it can select a parent control. PIN input is four ASCII
+digits in session memory; fixture values are not real credentials.
+
+The GIF parser accepts one full noninterlaced frame with bounded dimensions/input,
+valid palette indices and bounded LZW dictionary/output, explicit terminators and
+exact EOF. Synthetic tests cover transparency, repeat codes, truncation, invalid
+codes and expansion bounds. The original single-frame icon matched Pillow pixel
+for pixel. APNG animation is still not decoded. CRLF normalization applies only to
+dictionary values; lone CR and other disallowed controls still fail. All 161
+selected source identities were rehashed against the initial extraction inventory.
+No source script, native firmware program or installer was executed.
+
+No Cargo dependency/lockfile, workflow, license or Docker service change is made.
+Owner firmware, art, dictionaries, captures, PIN state and native packages remain
+local. This focused review does not certify the full firmware Bluetooth stack,
+protocols, legacy/active-projection/emergency-call behavior or on-car integration.

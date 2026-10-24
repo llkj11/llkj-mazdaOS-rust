@@ -8,6 +8,14 @@ pub struct Bitmap {
     pub(crate) rgba: Vec<u8>,
 }
 impl Bitmap {
+    pub(crate) fn with_opacity(&self, opacity: u8) -> Self {
+        let mut copy = self.clone();
+        for pixel in copy.rgba.as_chunks_mut::<4>().0 {
+            pixel[3] = u8::try_from(u16::from(pixel[3]) * u16::from(opacity) / 255)
+                .expect("bounded alpha");
+        }
+        copy
+    }
     /// Accept only our bounded raw RGBA format, produced by the offline importer.
     #[must_use]
     pub fn decode(bytes: &[u8]) -> Option<Self> {
@@ -94,7 +102,20 @@ pub struct StockAssets {
     pub(crate) languages: crate::languages::LanguageCatalog,
 }
 impl StockAssets {
-    pub const NAMES: [&'static str; 81] = [
+    pub const NAMES: [&'static str; 94] = [
+        "bt-remove",
+        "bt-phone",
+        "bt-audio",
+        "bt-check",
+        "bt-three",
+        "bt-three-focus",
+        "bt-keypad-bg",
+        "bt-keypad-key",
+        "bt-keypad-focus",
+        "bt-keypad-clear",
+        "bt-keypad-cancel",
+        "bt-keypad-ok",
+        "bt-keypad-back",
         "update-spinner",
         "update-progress-bg",
         "update-progress-fill",
@@ -338,5 +359,18 @@ mod tests {
             .legal_lines
             .iter()
             .all(|line| crate::text_width(line, 28) <= 640 && line.chars().count() <= 256));
+    }
+    #[test]
+    fn css_half_opacity_preserves_rgb_and_bounds_alpha_without_changing_source() {
+        let bitmap = Bitmap {
+            width: 2,
+            height: 1,
+            rgba: vec![10, 20, 30, 255, 40, 50, 60, 80],
+        };
+        assert_eq!(
+            bitmap.with_opacity(128).rgba,
+            [10, 20, 30, 128, 40, 50, 60, 40]
+        );
+        assert_eq!(bitmap.rgba, [10, 20, 30, 255, 40, 50, 60, 80]);
     }
 }

@@ -293,3 +293,46 @@ one SIM-1 package, finite error fixtures and host revocation rules do not establ
 real OEM updater behavior. Dynamic services, auto-update notifications, software/
 fail-safe update contexts, other Settings branches and hardware deployment remain
 required; see MUSIC_UPDATE_PORT.md and CMU_DEPLOYMENT_PLAN.md.
+
+
+## Devices/Bluetooth host increment (0.11.0)
+
+- Source review follows syssettings Devices row construction/region/capability
+  gating, btpairing declarations and callbacks, List2/Dialog3 and DialPad2 geometry,
+  source dictionaries and thirteen original images. All 161 selected source
+  identities matched the original extraction inventory and were rehashed.
+- Formatting, strict Clippy and 89 Rust tests passed (core 3, desktop 11, mock 4,
+  UI 71). Fifteen importer tests and five catalog tests passed. New checks cover
+  independent profile ownership, unsupported capabilities, SSP confirmation and
+  timeouts, explicit unpair Yes, failed operations preserving records, parent
+  routing, four-digit PIN validation/cancel/OK, policy revocation and global exit.
+- Generated and inspected 99 source-guided Bluetooth/Devices renders across the
+  three NA locales. Exact final source reproduced all 99, and all 60 music update
+  renders stayed byte-identical after shared Dialog3 text helpers were extracted.
+- The single-frame 37x37 original GIF unpair icon decoded identically to Pillow.
+  CI uses only synthetic GIF data and the standard-library decoder, covering
+  palette/transparency, LZW repeat codes, truncation, invalid codes, expansion
+  bounds and invalid dimensions. CRLF normalization has its own rejection checks
+  for lone control characters. The language catalog is 323541 bytes/seven apps.
+- Native Mac keyboard checks confirmed separate phone/audio ownership, disabled
+  phone profiles for the simulated audio player, clearing a PIN digit, disabled
+  OK while incomplete, explicit PIN save and reopening the saved value. Captures
+  remain local. Automated native clicks did not activate controls despite model
+  pointer checks; native pointer activation remains unresolved, not proven.
+- The exact final delivery app also completed the French SSP pairing flow;
+  Unpair No returned to the original profile with both connections retained,
+  while explicit Yes removed the simulated device and returned to an empty
+  manager. Three sequential 90-frame startup checks of the extracted app
+  (English default, Spanish paired, French SSP) all exited 0.
+- The 0.11.0 delivery ZIP was independently extracted; its ad-hoc signature,
+  signed executable identity and 94-image/resource inventory were verified.
+  Native tests of the exact final package and CI results are recorded in the
+  owner-local package-verification report; startup-only smoke runs are distinct
+  from interaction checks.
+
+No Bluetooth adapter, phone/contacts, credentials, real pairing, vehicle service,
+USB scan, firmware installer or OS settings were accessed. No Docker service or
+new dependency/workflow was introduced; Cargo.lock and LICENSE are unchanged.
+BLUETOOTH_PORT.md lists eleven unported btpairing contexts plus other pending
+capability, reset, notification, animation and service/hardware work. This does
+not complete full Settings or the full native replacement.

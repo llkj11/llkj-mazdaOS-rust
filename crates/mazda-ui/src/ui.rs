@@ -1,5 +1,6 @@
 //! Native port of the owner's NA 70.00.100A home/menu geometry.
 //! Source mapping is documented in `docs/STOCK_UI_PORT.md`. No firmware JS executes.
+use crate::bluetooth::{BluetoothSession, BtPage};
 use crate::clock::{ClockPage, ClockSession, CLOCK_ROWS};
 use crate::languages::{LanguagePage, LanguageSession};
 use crate::music_update::{MusicPage, MusicUpdateSession};
@@ -14,10 +15,15 @@ use mazda_core::{CommanderEvent, MazdaReadOnly, MediaState, VehicleSnapshot};
 use std::sync::Arc;
 #[path = "clock_ui.rs"]
 mod clock_ui;
+#[path = "devices_ui.rs"]
+mod devices_ui;
+#[path = "dialog_ui.rs"]
+mod dialog_ui;
 #[path = "language_ui.rs"]
 mod language_ui;
 #[path = "music_update_ui.rs"]
 mod music_update_ui;
+use dialog_ui::{dialog_block, dialog_line};
 #[path = "sound_ui.rs"]
 mod sound_ui;
 #[path = "system_ui.rs"]
@@ -126,6 +132,7 @@ pub struct UiModel {
     system: SystemSession,
     language: LanguageSession,
     music_update: MusicUpdateSession,
+    bluetooth: BluetoothSession,
 }
 impl UiModel {
     #[must_use]
@@ -148,6 +155,7 @@ impl UiModel {
             system: SystemSession::default(),
             language: LanguageSession::default(),
             music_update: MusicUpdateSession::default(),
+            bluetooth: BluetoothSession::default(),
         }
     }
     pub fn set_assets(&mut self, assets: StockAssets) {
@@ -165,6 +173,7 @@ impl UiModel {
             .min(self.assets.languages.packs.len().saturating_sub(1));
         self.language.page = LanguagePage::Closed;
         self.music_update.page = MusicPage::Closed;
+        self.bluetooth.page = BtPage::Closed;
     }
     pub fn refresh(&mut self, source: &impl MazdaReadOnly) {
         self.vehicle = source.vehicle_snapshot();
@@ -172,6 +181,10 @@ impl UiModel {
         self.clock.restrict(self.vehicle.is_confirmed_parked());
         self.system.restrict(self.vehicle.is_confirmed_parked());
         self.language.restrict(self.vehicle.is_confirmed_parked());
+        self.bluetooth.restrict(
+            self.vehicle.is_confirmed_parked(),
+            self.system.equipment.services_ready,
+        );
         self.music_update.restrict(
             self.vehicle.is_confirmed_parked(),
             self.system.equipment.services_ready,
@@ -344,6 +357,7 @@ impl UiModel {
         self.system.page = SystemPage::Root;
         self.language.page = LanguagePage::Closed;
         self.music_update.page = MusicPage::Closed;
+        self.bluetooth.page = BtPage::Closed;
         self.screen = screen;
         self.row = 0;
         self.settings_rows = false;
@@ -364,6 +378,7 @@ impl UiModel {
             Screen::Settings if self.settings_tab == 1 => &DISPLAY,
             Screen::Settings if self.settings_tab == 3 => self.sound.profile.labels(),
             Screen::Settings if self.settings_tab == 4 => &CLOCK_ROWS,
+            Screen::Settings if self.settings_tab == 6 => self.devices_labels(),
             Screen::Settings if self.settings_tab == 7 => self.system.labels(),
             _ => &[],
         }
@@ -389,6 +404,7 @@ impl UiModel {
                 .get(row)
                 .is_some_and(|&control| self.sound.allowed(control, parked)),
             (Screen::Settings, 4) => self.clock.enabled(row, parked),
+            (Screen::Settings, 6) => row == 0 || (parked && self.system.equipment.services_ready),
             (Screen::Settings, 7) => self
                 .system
                 .controls()
@@ -503,6 +519,13 @@ impl UiModel {
     }
     fn settings_active_event(&mut self, event: CommanderEvent) -> bool {
         let parked = self.vehicle.is_confirmed_parked();
+        if self.settings_tab == 6
+            && self
+                .bluetooth
+                .event(event, parked, self.system.equipment.services_ready)
+        {
+            return true;
+        }
         if self.settings_tab == 7
             && self
                 .music_update
@@ -530,6 +553,10 @@ impl UiModel {
         }
     }
     fn select_row(&mut self) {
+        if self.screen == Screen::Settings && self.settings_tab == 6 {
+            self.select_devices_row();
+            return;
+        }
         if self.screen == Screen::Settings
             && self.settings_tab == 7
             && self.system.controls().get(self.row) == Some(&crate::SystemControl::MusicDatabase)
@@ -681,6 +708,7 @@ impl UiModel {
         let tab_arrow = self.screen == Screen::Settings
             && !self.clock_child()
             && !self.system_child()
+            && !self.devices_child()
             && x >= 52
             && (64..133).contains(&y);
         if self.left_back_visible() && x < 94 && (64..480).contains(&y) && !tab_arrow {
@@ -697,6 +725,10 @@ impl UiModel {
                 return true;
             }
             self.system_pointer(x, y);
+            return true;
+        }
+        if self.devices_child() {
+            self.bluetooth_pointer(x, y);
             return true;
         }
         if self.clock_child() {
@@ -720,12 +752,17 @@ impl UiModel {
             self.image_natural(renderer, "left-back", 0, 64);
             return;
         } else if self.full_screen_dialog() {
-            self.render_system_child(renderer);
+            if self.devices_child() {
+                self.render_bluetooth(renderer);
+            } else {
+                self.render_system_child(renderer);
+            }
             self.image_natural(
                 renderer,
                 if matches!(self.system.page, SystemPage::Progress { .. })
                     || matches!(self.language.page, LanguagePage::Progress { .. })
                     || self.music_update.page.busy()
+                    || self.bluetooth.page.pending()
                 {
                     "left-back-disabled"
                 } else {
@@ -752,29 +789,43 @@ impl UiModel {
                 renderer,
                 117,
                 8,
-                self.tr(
-                    self.status_dictionary(),
-                    if self.screen == Screen::Navigation {
-                        "Compass"
-                    } else if self.clock_child() {
-                        "System Settings"
-                    } else if self.system_child() {
-                        if self.system.page == SystemPage::Version
-                            || self.music_update.page != MusicPage::Closed
-                        {
-                            "System Update"
-                        } else if matches!(
-                            self.system.page,
-                            SystemPage::Confirm { .. } | SystemPage::Progress { .. }
-                        ) {
-                            "Settings"
+                if self.devices_child() && self.bluetooth.page != BtPage::ConfirmCarPlay {
+                    self.loc(
+                        "btpairing",
+                        if self.bluetooth.page == BtPage::Keypad {
+                            "Enterpaircode"
                         } else {
+                            "Setting"
+                        },
+                        "Settings",
+                    )
+                } else {
+                    self.tr(
+                        self.status_dictionary(),
+                        if self.screen == Screen::Navigation {
+                            "Compass"
+                        } else if self.devices_child() && self.bluetooth.page == BtPage::Keypad {
+                            "Enter Pair Code"
+                        } else if self.clock_child() {
                             "System Settings"
-                        }
-                    } else {
-                        self.screen.label()
-                    },
-                ),
+                        } else if self.system_child() {
+                            if self.system.page == SystemPage::Version
+                                || self.music_update.page != MusicPage::Closed
+                            {
+                                "System Update"
+                            } else if matches!(
+                                self.system.page,
+                                SystemPage::Confirm { .. } | SystemPage::Progress { .. }
+                            ) {
+                                "Settings"
+                            } else {
+                                "System Settings"
+                            }
+                        } else {
+                            self.screen.label()
+                        },
+                    )
+                },
                 420,
                 38,
                 Color::TEXT,
@@ -792,6 +843,7 @@ impl UiModel {
     fn left_back_visible(&self) -> bool {
         self.screen != Screen::Home
             && !(self.clock_child() && matches!(self.clock.page, ClockPage::Adjust { .. }))
+            && !(self.devices_child() && self.bluetooth.page == BtPage::Keypad)
     }
     fn image_natural(&self, r: &mut impl Renderer, name: &str, x: i32, y: i32) {
         if let Some(bitmap) = self.assets.get(name) {
@@ -1013,6 +1065,10 @@ impl UiModel {
         }
     }
     fn render_page(&self, r: &mut impl Renderer) {
+        if self.devices_child() {
+            self.render_bluetooth(r);
+            return;
+        }
         if self.system_child() {
             self.render_system_child(r);
             return;
@@ -1056,6 +1112,8 @@ impl UiModel {
                 self.render_sound(r);
             } else if self.settings_tab == 4 {
                 self.render_clock_root(r);
+            } else if self.settings_tab == 6 {
+                self.render_devices_root(r);
             } else if self.settings_tab == 7 {
                 self.render_system_root(r);
             }
@@ -1747,5 +1805,115 @@ mod tests {
         assert_eq!(ui.screen(), Screen::Home);
         assert_eq!(ui.music_update.page, MusicPage::Closed);
         assert_eq!(ui.simulated_music_version(), None);
+    }
+    #[test]
+    fn devices_na_root_hides_unreported_projection_and_nested_back_preserves_origin() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 6;
+        ui.settings_rows = true;
+        assert_eq!(ui.rows(), ["Bluetooth"]);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.bluetooth.page, BtPage::Manager);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.bluetooth.page, BtPage::Settings);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.bluetooth.page, BtPage::Keypad);
+        assert!(!ui.left_back_visible());
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.bluetooth.page, BtPage::Settings);
+        assert_eq!(ui.bluetooth.focus, 1);
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.bluetooth.page, BtPage::Manager);
+        assert_eq!(ui.bluetooth.focus, 1);
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.bluetooth.page, BtPage::Closed);
+        assert!(ui.settings_rows);
+        ui.set_projection_fixture(true);
+        assert_eq!(ui.rows(), ["Bluetooth", "Android Auto", "Apple CarPlay"]);
+        ui.row = 2;
+        ui.handle_commander(CommanderEvent::Select);
+        assert!(ui.bluetooth.projection.carplay);
+        ui.handle_commander(CommanderEvent::Select);
+        assert!(ui.full_screen_dialog());
+        ui.handle_commander(CommanderEvent::Back);
+        assert!(!ui.bluetooth.projection.carplay);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::Select);
+        assert!(!ui.bluetooth.projection.carplay);
+        assert_eq!(ui.row, 2);
+    }
+    #[test]
+    fn bluetooth_pointer_profiles_and_confirmations_are_bounded_and_session_only() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.set_bluetooth_fixture(crate::BluetoothFixture::Paired);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 6;
+        ui.settings_rows = true;
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_pointer(usize::MAX, usize::MAX);
+        assert_eq!(ui.bluetooth_paired_count(), 2);
+        ui.handle_pointer(500, 420);
+        assert_eq!(ui.bluetooth.page, BtPage::Profiles);
+        ui.handle_pointer(500, 420);
+        assert_eq!(ui.bluetooth.page, BtPage::ConfirmDelete);
+        assert_eq!(ui.bluetooth.focus, 0);
+        ui.handle_pointer(180, 420);
+        assert_eq!(ui.bluetooth_paired_count(), 2);
+        ui.bluetooth.show(BtPage::ConfirmDelete);
+        ui.handle_pointer(600, 420);
+        assert_eq!(ui.bluetooth.page, BtPage::Deleting);
+        ui.vehicle.gear = Gear::Drive;
+        ui.advance_simulation(std::time::Duration::MAX);
+        assert_eq!(ui.bluetooth_paired_count(), 2);
+        assert_eq!(ui.bluetooth.page, BtPage::Manager);
+        assert_eq!(ui.bluetooth.devices[0].roles, 3);
+        assert_eq!(ui.media, Fixture.media_state());
+    }
+    #[test]
+    fn bluetooth_source_views_render_and_global_exit_cancels_pending_pairing() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.set_bluetooth_fixture(crate::BluetoothFixture::Paired);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 6;
+        for page in [
+            BtPage::Manager,
+            BtPage::Settings,
+            BtPage::Information,
+            BtPage::Profiles,
+            BtPage::Discoverable,
+            BtPage::NumericConfirm,
+            BtPage::Pairing,
+            BtPage::PairSuccess,
+            BtPage::Connecting,
+            BtPage::Connected,
+            BtPage::Disconnecting,
+            BtPage::Disconnected,
+            BtPage::ConfirmDelete,
+            BtPage::Deleting,
+            BtPage::Deleted,
+            BtPage::DeleteList,
+            BtPage::PairFailed,
+            BtPage::ConnectFailed,
+            BtPage::DisconnectFailed,
+            BtPage::DeleteFailed,
+            BtPage::Cancelling,
+            BtPage::PreparingPair,
+            BtPage::PrePairFailed,
+            BtPage::ConfirmCarPlay,
+            BtPage::Keypad,
+        ] {
+            ui.bluetooth.show(page);
+            ui.render(&mut crate::Framebuffer::mazda_connect());
+        }
+        ui.bluetooth.show(BtPage::Pairing);
+        ui.handle_commander(CommanderEvent::Home);
+        ui.advance_simulation(std::time::Duration::MAX);
+        assert_eq!(ui.bluetooth.page, BtPage::Closed);
+        assert_eq!(ui.bluetooth_paired_count(), 2);
+        assert_eq!(ui.screen(), Screen::Home);
     }
 }

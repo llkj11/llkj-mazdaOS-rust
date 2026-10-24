@@ -24,7 +24,9 @@ impl UiModel {
         self.loc(app, key, fallback)
     }
     pub(super) fn status_dictionary(&self) -> &'static str {
-        if self.system_child()
+        if self.devices_child() && self.bluetooth.page != super::BtPage::ConfirmCarPlay {
+            "btpairing"
+        } else if self.system_child()
             && (self.system.page == SystemPage::Version
                 || self.music_update.page != super::MusicPage::Closed)
         {
@@ -84,13 +86,14 @@ impl UiModel {
         self.loc("syssettings", &pack.id, &pack.id)
     }
     pub(super) fn full_screen_dialog(&self) -> bool {
-        self.system_child()
-            && (self.language.full_screen()
-                || self.music_update.page.full_screen()
-                || matches!(
-                    self.system.page,
-                    SystemPage::Confirm { .. } | SystemPage::Progress { .. }
-                ))
+        (self.devices_child() && self.bluetooth.page == super::BtPage::ConfirmCarPlay)
+            || self.system_child()
+                && (self.language.full_screen()
+                    || self.music_update.page.full_screen()
+                    || matches!(
+                        self.system.page,
+                        SystemPage::Confirm { .. } | SystemPage::Progress { .. }
+                    ))
     }
     pub(super) fn language_pointer(&mut self, x: usize, y: usize) {
         if x >= 800 || y >= 480 {

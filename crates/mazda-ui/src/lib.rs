@@ -1,4 +1,5 @@
 //! Platform-neutral native UI with bundled, antialiased typography and read-only observations.
+mod bluetooth;
 mod clock;
 mod graphics;
 mod languages;
@@ -11,6 +12,7 @@ mod system_settings;
 mod typography;
 mod ui;
 
+pub use bluetooth::BluetoothFixture;
 pub use clock::{ClockPreferences, TimeFormat};
 pub use graphics::{Color, Framebuffer, Rect, Renderer};
 pub use music_update::MusicUpdateFixture;

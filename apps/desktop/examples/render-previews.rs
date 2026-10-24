@@ -9,6 +9,8 @@ use std::{
 };
 #[path = "../src/assets.rs"]
 mod assets;
+#[path = "support/bluetooth-previews.rs"]
+mod bluetooth_previews;
 #[path = "support/music-previews.rs"]
 mod music_previews;
 fn save(ui: &UiModel, directory: &Path, name: &str) -> io::Result<()> {
@@ -50,6 +52,7 @@ fn main() -> io::Result<()> {
     system_previews(directory, &artwork)?;
     language_previews(directory, &artwork)?;
     music_previews::render(directory, &artwork)?;
+    bluetooth_previews::render(directory, &artwork)?;
     let mock = MockMazda::demo();
     let mut ui = UiModel::from_source(&mock);
     ui.set_assets(artwork);

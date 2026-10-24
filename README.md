@@ -33,7 +33,10 @@ and restore of implemented host preferences. The original language selector now 
 Spanish and Canadian French dictionaries. The [Music Database Update screens](docs/MUSIC_UPDATE_PORT.md)
 now support source-guided search, selection, confirmation, progress, errors and retry
 with synthetic service data; no USB scanning or updater is connected. Full global
-language/voice support remains pending. The default Touring fixture uses standard audio and no HUD; explicit
+language/voice support remains pending. Devices now has the NA root plus
+[source-guided Bluetooth simulation](docs/BLUETOOTH_PORT.md), including paired-device
+profiles, SSP confirmation, connection/unpairing flows and the four-digit pairing-code keypad.
+No Bluetooth radio, phone, contacts or OS settings are accessed. The default Touring fixture uses standard audio and no HUD; explicit
 `--audio-profile bose`, `--audio-profile bose-j12` and `--hud` fixtures retain the
 other source layouts for testing. Remaining Settings contexts, radio, phone, maps, cameras and actual
 vehicle services still require conversion or integration.

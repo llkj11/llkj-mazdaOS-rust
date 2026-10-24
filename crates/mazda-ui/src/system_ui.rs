@@ -24,6 +24,11 @@ impl UiModel {
             self.vehicle.is_confirmed_parked(),
             self.system.equipment.services_ready,
         );
+        self.bluetooth.advance(
+            elapsed_ms,
+            self.vehicle.is_confirmed_parked(),
+            self.system.equipment.services_ready,
+        );
         if self
             .system
             .advance(elapsed_ms, self.vehicle.is_confirmed_parked())

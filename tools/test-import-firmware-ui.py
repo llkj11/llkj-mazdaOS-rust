@@ -22,7 +22,7 @@ class ImportChecks(unittest.TestCase):
         ids=['LANGS_US_ENGLISH','LANGS_NA_SPANISH','LANGS_CN_FRENCH'];codes=['en_US','es_MX','fr_CN']
         app.write_text('this._cachedLanguagesList='+json.dumps([{'languageID':i,'vrSupport':True,'ttsSupport':False} for i in ids])+'; ignored();')
         framework=gui/'framework/js/Localization.js';framework.parent.mkdir(parents=True);framework.write_text('this.LANG_CODES='+json.dumps(dict(zip(ids,codes)))+'; ignored();')
-        for name in ['common','system','syssettings','audiosettings','emnavi','sysupdate']:
+        for name in ['common','system','syssettings','audiosettings','emnavi','sysupdate','btpairing']:
             parent=gui/'resources/js'/name;parent.mkdir(parents=True)
             for code in codes:
                 (parent/(name+'AppDict_'+code+'.js')).write_text('var Localization_fixture='+json.dumps({'Name':'Source' if code=='en_US' else 'témoignage'})+'; ignored();')
@@ -41,6 +41,28 @@ class ImportChecks(unittest.TestCase):
             dictionary.write_text('var Localization_fixture={Name:"safe"};')
             (gui/'framework/js/Localization.js').write_text('this.LANG_CODES={LANGS_US_ENGLISH:"../outside",LANGS_NA_SPANISH:"es_MX",LANGS_CN_FRENCH:"fr_CN"};')
             with self.assertRaises(ValueError):importer.language_assets(Path(directory))
+    def test_dictionary_crlf_becomes_one_line_break_but_lone_controls_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            gui=self.language_reference(directory)
+            dictionary=gui/'resources/js/btpairing/btpairingAppDict_es_MX.js'
+            dictionary.write_text('var Localization_fixture='+json.dumps({'Name':'line\r\nnext'})+';')
+            data=importer.language_assets(Path(directory))
+            self.assertIn(b'line\nnext',data);self.assertNotIn(b'line\r\nnext',data)
+            dictionary.write_text('var Localization_fixture='+json.dumps({'Name':'line\rnext'})+';')
+            with self.assertRaises(ValueError):importer.language_assets(Path(directory))
+    def gif(self,width=1,payload=b'\x44\x01',transparent=True):
+        header=b'GIF89a'+struct.pack('<HHBBB',width,1,128,0,0)+b'\0\0\0\xff\xff\xff'
+        control=b'!\xf9\x04\x01\0\0\0\0' if transparent else b''
+        return header+control+b','+struct.pack('<HHHHB',0,0,width,1,0)+b'\x02'+bytes([len(payload)])+payload+b'\0;'
+    def test_static_gif_preserves_palette_transparency_and_lzw_repeat_codes(self):
+        self.assertEqual(importer.gif_rgba(self.gif())[16:],b'\0\0\0\0')
+        self.assertEqual(importer.gif_rgba(self.gif(3,b'\x8c\x0b',False))[16:],b'\xff'*12)
+    def test_gif_rejects_truncation_oversized_frames_and_expansion_or_invalid_codes(self):
+        data=self.gif()
+        for end in range(len(data)):
+            with self.assertRaises(ValueError):importer.gif_rgba(data[:end])
+        for invalid in [data+b'extra',self.gif(1,b'\x8c\x0b'),self.gif(1,b'\xfc\x01'),self.gif(1601),self.gif(1,b'\x04')]:
+            with self.assertRaises(ValueError):importer.gif_rgba(invalid)
     def test_rgb_adds_opaque_alpha_and_rgba_preserves_transparency(self):
         self.assertEqual(importer.png_rgba(png(2,1,2,b'\0\xff\0\0\0\xff\0'))[16:],bytes([255,0,0,255,0,255,0,255]))
         self.assertEqual(importer.png_rgba(png(1,1,6,b'\0\x10\x20\x30\x40'))[16:],bytes([16,32,48,64]))

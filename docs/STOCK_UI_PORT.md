@@ -81,7 +81,7 @@ remain local under ignored `target/owner-firmware/`. The default executable refu
 to start if the original artwork is missing, rather than substituting a new UI.
 `MZD_FIRMWARE_PASSWORD` may supply the archive password non-interactively.
 Older imports need reimporting into an empty directory: the current runtime
-requires all 81 images, `clock-zones.txt`, `legal.txt` and `languages.bin`. Missing inputs fail explicitly.
+requires all 94 images, `clock-zones.txt`, `legal.txt` and `languages.bin`. Missing inputs fail explicitly.
 
 ```sh
 cargo fmt --all -- --check
@@ -269,3 +269,16 @@ source identities and limits. Refresh older artwork imports to obtain the four
 additional original images (81 fixed images total). Preserve earlier extractions
 and use the importer's required empty destination. No updater or vehicle write
 is included.
+
+
+## Devices and Bluetooth
+
+The NA Devices root defaults to Bluetooth only. Android Auto/CarPlay capabilities
+are not inferred from the archive; `--projection-fixture` exposes their synthetic
+rows for tests. NA source omits Wi-Fi. `--bluetooth-fixture paired` supplies two
+clearly simulated devices; `ssp` supplies a synthetic incoming pairing request.
+See [BLUETOOTH_PORT.md](BLUETOOTH_PORT.md) for all finite scenarios, source mappings,
+remaining contexts and host-only limits. Older artwork imports need refreshing
+into an empty destination: 94 fixed images plus the updated seven-app language
+catalog are required. The importer now decodes the original static GIF unpair icon
+as bounded data; no firmware code is executed.

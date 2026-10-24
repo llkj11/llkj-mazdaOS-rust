@@ -6,7 +6,7 @@ from firmware_literals import LiteralReader
 
 LANGUAGES=('LANGS_US_ENGLISH','LANGS_NA_SPANISH','LANGS_CN_FRENCH')
 CODES=('en_US','es_MX','fr_CN')
-APPS=('common','system','syssettings','audiosettings','emnavi','sysupdate')
+APPS=('common','system','syssettings','audiosettings','emnavi','sysupdate','btpairing')
 
 def declaration(source,pattern):
     match=re.search(pattern,source)
@@ -42,7 +42,7 @@ def language_assets(reference):
                 translated=target.get(key)
                 if isinstance(value,str) and key in target and not isinstance(translated,str):raise ValueError('nonliteral translation')
                 if isinstance(value,str) and isinstance(translated,str) and len(value)<=4096 and len(translated)<=4096:
-                    pairs[(app,key)]=(value,translated)
+                    pairs[(app,key)]=(value.replace("\r\n","\n"),translated.replace("\r\n","\n"))
         output.extend(struct.pack('<I',len(pairs)))
         for (app,key),(original,translated) in sorted(pairs.items()):
             for value in (app,key,original,translated):string(value)

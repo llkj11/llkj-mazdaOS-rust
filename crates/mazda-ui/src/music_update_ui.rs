@@ -1,5 +1,5 @@
 //! sysupdate music contexts, original Dialog3/List2 geometry, host-only fixtures.
-use super::{fitted, Color, MusicPage, Renderer, UiModel};
+use super::{dialog_block, dialog_line, fitted, Color, MusicPage, Renderer, UiModel};
 use crate::{text_width, MusicUpdateFixture};
 use mazda_core::CommanderEvent;
 
@@ -49,31 +49,6 @@ impl UiModel {
     fn update_substitute(&self, key: &str, token: &str, value: &str) -> String {
         self.update_text(key).replace(token, value)
     }
-    fn update_block(r: &mut impl Renderer, text: &str, y: usize, height: usize) {
-        // Keep the source center at x=400; reserve ink clearance from the shared Back arc.
-        let lines = crate::typography::fit_block(text, 616, height / 38, 35);
-        let top = y + height.saturating_sub(lines.0.len() * 38) / 2;
-        for (index, line) in lines.0.iter().enumerate() {
-            let label = crate::typography::ellipsized(line, 616, lines.1);
-            r.text(
-                77 + 646_usize.saturating_sub(text_width(&label, lines.1)) / 2,
-                top + index * 38,
-                &label,
-                lines.1,
-                Color::TEXT,
-            );
-        }
-    }
-    fn update_one_line(r: &mut impl Renderer, text: &str, y: usize) {
-        let label = crate::typography::ellipsized(text, 616, 35);
-        r.text(
-            77 + 646_usize.saturating_sub(text_width(&label, 35)) / 2,
-            y,
-            &label,
-            35,
-            Color::TEXT,
-        );
-    }
     pub(super) fn render_music_update(&self, r: &mut impl Renderer) {
         if self.music_update.page == MusicPage::Packages {
             self.render_music_packages(r);
@@ -93,19 +68,19 @@ impl UiModel {
         match self.music_update.page {
             Confirm => {
                 let current = self.simulated_music_version().unwrap_or("-----");
-                Self::update_block(
+                dialog_block(
                     r,
                     &self.update_substitute("CurrentDatabase", "{CurrentVersion}", current),
                     150,
                     83,
                 );
-                Self::update_block(
+                dialog_block(
                     r,
                     &self.update_substitute("InstallDatabase", "{InstallVersion}", version),
                     242,
                     83,
                 );
-                Self::update_one_line(r, &self.update_text("SystemNA"), 336);
+                dialog_line(r, &self.update_text("SystemNA"), 336);
             }
             Searching | Preparing => {
                 let key = if self.music_update.page == Searching {
@@ -113,11 +88,11 @@ impl UiModel {
                 } else {
                     "RebootReflash"
                 };
-                Self::update_one_line(r, &self.update_text(key), 150);
+                dialog_line(r, &self.update_text(key), 150);
                 self.image_natural(r, "update-spinner", 344, 195);
             }
             Installing | Retrying => {
-                Self::update_block(
+                dialog_block(
                     r,
                     &self.update_substitute("InstallMusic", "{MusicVersion}", version),
                     150,
@@ -134,7 +109,7 @@ impl UiModel {
                 {
                     r.image(80, 294, width, 8, &fill);
                 }
-                Self::update_one_line(r, &self.update_text("DonotRestart"), 314);
+                dialog_line(r, &self.update_text("DonotRestart"), 314);
             }
             MusicPage::NoPackages | MusicPage::NeedsFailsafe => {
                 let key = if self.music_update.page == MusicPage::NoPackages {
@@ -142,7 +117,7 @@ impl UiModel {
                 } else {
                     "NeedFailSafeImageUpdate"
                 };
-                Self::update_block(r, &self.update_text(key), 150, 233);
+                dialog_block(r, &self.update_text(key), 150, 233);
             }
             MusicPage::RetryValidationFailed => {
                 fitted(
@@ -155,13 +130,13 @@ impl UiModel {
                     Color::TEXT,
                 );
                 self.image_natural(r, "update-title-separator", 60, 147);
-                Self::update_one_line(r, &self.update_text("AUTH_FAILED"), 229);
-                Self::update_block(r, &self.update_text("SysCatalogRestart"), 295, 102);
+                dialog_line(r, &self.update_text("AUTH_FAILED"), 229);
+                dialog_block(r, &self.update_text("SysCatalogRestart"), 295, 102);
             }
             _ => {
                 let (a, b) = self.update_message();
-                Self::update_block(r, &a, 150, 117);
-                Self::update_block(r, &b, 267, 117);
+                dialog_block(r, &a, 150, 117);
+                dialog_block(r, &b, 267, 117);
             }
         }
     }

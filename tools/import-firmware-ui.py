@@ -16,10 +16,24 @@ import tempfile
 import zlib
 from firmware_literals import LiteralReader
 from firmware_languages import language_assets
+from firmware_gif import gif_rgba
 
 PACKAGE_SHA256 = '5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0'
 GUI_PREFIX = 'jci/gui/'
 ASSETS = {
+    'bt-remove': 'apps/btpairing/images/IcnListRemoveItem.gif',
+    'bt-phone': 'common/images/icons/IcnListBtConnType_Phone.png',
+    'bt-audio': 'common/images/icons/IcnListBtConnType_Music.png',
+    'bt-check': 'common/images/icons/IcnListCheckmark.png',
+    'bt-three': 'common/controls/Dialog3/images/Dialog_3Btn.png',
+    'bt-three-focus': 'common/controls/Dialog3/images/Dialog_3Btn_Focus.png',
+    'bt-keypad-bg': 'common/controls/DialPad2/images/DialPadKeystyle03_Bkgd.png',
+    'bt-keypad-key': 'common/controls/DialPad2/images/DialKey.png',
+    'bt-keypad-focus': 'common/controls/DialPad2/images/Key_Focus.png',
+    'bt-keypad-clear': 'common/controls/DialPad2/images/Delete_Btn.png',
+    'bt-keypad-cancel': 'common/controls/DialPad2/images/Icn_Delete.png',
+    'bt-keypad-ok': 'common/controls/DialPad2/images/Icn_Send.png',
+    'bt-keypad-back': 'common/controls/DialPad2/images/BtnLeft_En.png',
     'update-spinner': 'common/images/IndeterminateMeter_2.png',
     'update-progress-bg': 'common/controls/Dialog3/images/Dialog_ProgressBar_Background.png',
     'update-progress-fill': 'common/controls/Dialog3/images/Dialog_ProgressBar_Highlight.png',
@@ -237,7 +251,7 @@ def extract(firmware, destination, password):
     rendered.mkdir()
     for key, relative in ASSETS.items():
         data=(destination/'reference/jci/gui'/relative).read_bytes()
-        rgba=bytearray(png_rgba(data))
+        rgba=bytearray(gif_rgba(data) if relative.endswith('.gif') else png_rgba(data))
         if key in ('compass-rail','compass-step','compass-needle'):
             for index in range(19,len(rgba),4): rgba[index]=round(rgba[index]*0.29)
         (rendered/f'{key}.rgba').write_bytes(rgba)

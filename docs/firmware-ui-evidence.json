@@ -702,6 +702,111 @@
       "path": "jci/gui/common/templates/Dialog3/css/Dialog3Tmplt.css",
       "bytes": 84,
       "sha256": "dfeaef80d480811ca517aff5f981f19d90367c37d70c7fa6cf741618618d57a1"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListBtConnType_Phone.png",
+      "bytes": 550,
+      "sha256": "ad84afbedc7c2d820fe44071342c0d6db27e22be66f5855e1675b18abc67615b"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListBtConnType_Music.png",
+      "bytes": 428,
+      "sha256": "d53c4af503d1c836373e71f034bd82118407f37c36a673e76eb77e924f21bf72"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListCheckmark.png",
+      "bytes": 458,
+      "sha256": "691d3af2d6f5f11eded3893856a2ed7882ed7b4cd2cea4d766bed0104126166c"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_3Btn.png",
+      "bytes": 881,
+      "sha256": "f880e8d9d88b20b03f59073afedc93252d2c11fdf1c101b21dc65c1a3b1bb7be"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_3Btn_Focus.png",
+      "bytes": 12344,
+      "sha256": "e574662ba876b8d3174207676ef3ceeb42a64c66c64431e2153b1ab2f76b7e44"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/DialPadKeystyle03_Bkgd.png",
+      "bytes": 2094,
+      "sha256": "330da6cb21f188a477afc5a901e957d5cadcfc4a8f5c7da8661b7a6e92ae5c76"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/DialKey.png",
+      "bytes": 896,
+      "sha256": "dfc11370b6df43d0d2dde654c9079a384b868a41b42222b8269aa8a3d5a7c8ac"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Key_Focus.png",
+      "bytes": 7414,
+      "sha256": "dab5cf710df84fc60b0765c833bdd13a2fea4cd491b0e1d4dc21291854125e25"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Delete_Btn.png",
+      "bytes": 2430,
+      "sha256": "c46e838f421f0f2f6df8f696e7d542de10b6719782c130998187e7e1c5ff8775"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Icn_Delete.png",
+      "bytes": 3559,
+      "sha256": "93c0bc5954ddc9b4b46b16aaea6a70183f6a96b02a41704a4809453fde55e62a"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Icn_Send.png",
+      "bytes": 1728,
+      "sha256": "2680f92d616b06d2dcfbb074b5f3855d34e8dd3ff04998e101bc234341609d3e"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/BtnLeft_En.png",
+      "bytes": 3417,
+      "sha256": "2094f676bb6fa8a562a166a5f843d480e803d7ea0af2044fc821f0af73c5f5e8"
+    },
+    {
+      "path": "jci/gui/resources/js/btpairing/btpairingAppDict_en_US.js",
+      "bytes": 3890,
+      "sha256": "befdf890c1d480f065e164bb31fce9d42a277126bdeb4337280582cd1d43d0b4"
+    },
+    {
+      "path": "jci/gui/resources/js/btpairing/btpairingAppDict_es_MX.js",
+      "bytes": 4251,
+      "sha256": "677ab284525f3e0358098a2d5aba1ecd16ed276583c586506b7e51dff9f14c5b"
+    },
+    {
+      "path": "jci/gui/resources/js/btpairing/btpairingAppDict_fr_CN.js",
+      "bytes": 4326,
+      "sha256": "0a854ff013f05a0b83526519df81daab5ea2200eac4efd849a95f48d0dbe3687"
+    },
+    {
+      "path": "jci/gui/apps/btpairing/js/btpairingApp.js",
+      "bytes": 129899,
+      "sha256": "0c9501a0bb6f056865969d14f06d0995f0ffc5be8f30b692b9cf2fee4eaa59f2"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/js/DialPad2Ctrl.js",
+      "bytes": 76394,
+      "sha256": "bec0f3ce824d1e9101d267810f51a6591ceb488d498e44c9637685c465ac0603"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/css/DialPad2Ctrl.css",
+      "bytes": 8525,
+      "sha256": "87441db13eae0da8e62df83d32c1dc89c8cd8197c0c74661c3e9a82d3372bd38"
+    },
+    {
+      "path": "jci/gui/common/templates/DialPad2/js/DialPad2Tmplt.js",
+      "bytes": 3838,
+      "sha256": "69214a2195c31b484ad03b4996e04a77385d65b911bf54652b6c8cd678b92661"
+    },
+    {
+      "path": "jci/gui/common/templates/DialPad2/css/DialPad2Tmplt.css",
+      "bytes": 146,
+      "sha256": "63a233ed7070da5e2023e56661d6485cc9929f51d1ba4c432ababbc02b348895"
+    },
+    {
+      "path": "jci/gui/apps/btpairing/images/IcnListRemoveItem.gif",
+      "bytes": 1519,
+      "sha256": "a5d3fa4776804b38a6dfa07c298fead6c87a68ae8440b53bb48d7e3f769770b3"
     }
   ]
 }
