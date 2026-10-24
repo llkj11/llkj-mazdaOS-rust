@@ -19,6 +19,17 @@ from firmware_literals import LiteralReader
 PACKAGE_SHA256 = '5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0'
 GUI_PREFIX = 'jci/gui/'
 ASSETS = {
+    'left-back': 'common/controls/LeftBtn/images/BtnLeft_En.png',
+    'left-back-disabled': 'common/controls/LeftBtn/images/BtnLeft_Ds.png',
+    'system-dialog-bg': 'common/controls/Dialog3/images/DialogBG_Style01.png',
+    'system-dialog-ok': 'common/controls/Dialog3/images/Dialog_1Btn_Focus.png',
+    'system-meter': 'common/images/IndeterminateMeter.png',
+    'legal-background': 'common/controls/ScrollDetail/images/ScrollDetailBackground.png',
+    'legal-focus': 'common/controls/ScrollDetail/images/ScrollDetailBackground_Focus.png',
+    'legal-header': 'common/controls/ScrollDetail/images/ScrollDetailHeadBack_Bg.png',
+    'legal-scroll-bg': 'common/controls/ScrollDetail/images/ScrollbarBg.png',
+    'legal-scroll': 'common/controls/ScrollDetail/images/Scrollbar.png',
+    'legal-shadow': 'common/controls/ScrollDetail/images/ScrollDetailBottomShadow.png',
     'clock-background': 'common/controls/ClockSettings2/images/ClockSettingBG.png',
     'clock-colon': 'common/controls/ClockSettings2/images/ClockSetting_Colon_En.png',
     'clock-panel': 'common/controls/Ump3/images/UMP_Bg.png',
@@ -162,6 +173,28 @@ def clock_zone_text(reference):
     if not 1<=len(result)<=128: raise ValueError('unexpected time-zone count')
     return ('MZTIMEZONES1\n'+'\n'.join(result)+'\n').encode('utf-8')
 
+def legal_text(reference):
+    """Decode only a sum of quoted string literals; reject every executable expression."""
+    source=(reference/'jci/gui/apps/syssettings/js/legalDisclosure.js').read_text()
+    match=re.search(r'var\s+ScrollDetailCtrlProperties\s*=\s*\{',source)
+    if not match: raise ValueError('missing original disclosure declaration')
+    value=LiteralReader(source,match.end()-1).value()['scrollDetailBody']
+    if isinstance(value,str): text=value
+    else:
+        reader=LiteralReader(value['$expr']);parts=[]
+        while True:
+            reader.skip()
+            if reader.position>=len(reader.source) or reader.source[reader.position] not in ('"',"'"):
+                raise ValueError('disclosure is not literal text')
+            parts.append(reader.string());reader.skip()
+            if reader.position==len(reader.source):break
+            if reader.source[reader.position]!='+':raise ValueError('disclosure expression rejected')
+            reader.position+=1
+        text=''.join(parts)
+    if not text or len(text)>32768 or any(ord(c)<32 and c!='\n' or 127<=ord(c)<=159 for c in text):
+        raise ValueError('invalid disclosure text')
+    return ('MZLEGAL1\n'+text).encode('utf-8')
+
 def extract(firmware, destination, password):
     hasher = hashlib.sha256()
     with firmware.open('rb') as file:
@@ -203,6 +236,7 @@ def extract(firmware, destination, password):
             for index in range(19,len(rgba),4): rgba[index]=round(rgba[index]*0.29)
         (rendered/f'{key}.rgba').write_bytes(rgba)
     (rendered/'clock-zones.txt').write_bytes(clock_zone_text(destination/'reference'))
+    (rendered/'legal.txt').write_bytes(legal_text(destination/'reference'))
     manifest={'package_sha256':digest,'files':inventory,'render_assets':ASSETS}
     (destination/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     shutil.copyfile(destination/'manifest.json',rendered/'manifest.json')

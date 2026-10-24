@@ -228,3 +228,23 @@ No crates, lockfile changes, build dependencies, runtime shell commands,
 credential reads or Docker components were added. Firmware-native programs,
 scripts and JavaScript were not executed. This supplements the bounded review;
 it is not a review of the complete firmware or a vehicle compatibility claim.
+
+## System preferences, disclosures and simulated restore
+
+Eleven additional PNGs (Dialog3, ScrollDetail, meter and LeftBtn) are checked
+against the extraction inventory, decoded offline and added to the fixed 76-name
+allowlist. The original disclosure's object value is accepted only as quoted
+strings joined by `+`, with comments/escapes parsed as inert text. Calls, property
+access and other expressions fail; JavaScript is not evaluated. The resulting
+`legal.txt` remains ignored and owner-local. Runtime input requires a version
+header, valid UTF-8, at most 132000 bytes/32768 scalars, and excludes control
+characters except newline. Wrapping is cached on asset load. Signed text origins
+and explicit clipping preserve viewport boundaries without unbounded surfaces.
+
+System controls and restore manipulate only in-memory host preference state.
+Restore requires explicit Yes while Park/services are valid; loss of either
+cancels completion. Equipment fixtures and read-only observations are preserved.
+There is no filesystem deletion, OS reset, network, credential read, device write
+or OEM reset command. Version strings use unavailable service states instead of
+inferring installed firmware. Disclosure URLs are plain text, never opened or
+fetched. No dependencies, lockfile changes or Docker components were added.

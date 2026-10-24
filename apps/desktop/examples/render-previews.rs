@@ -45,6 +45,7 @@ fn main() -> io::Result<()> {
     fs::create_dir_all(directory)?;
     sound_previews(directory, &artwork)?;
     clock_previews(directory, &artwork)?;
+    system_previews(directory, &artwork)?;
     let mock = MockMazda::demo();
     let mut ui = UiModel::from_source(&mock);
     ui.set_assets(artwork);
@@ -105,6 +106,73 @@ fn main() -> io::Result<()> {
         ui.handle_commander(CommanderEvent::Home);
         ui.handle_commander(CommanderEvent::RotateClockwise);
     }
+    Ok(())
+}
+
+fn system_previews(directory: &Path, artwork: &StockAssets) -> io::Result<()> {
+    let mut mock = MockMazda::demo();
+    let mut ui = UiModel::from_source(&mock);
+    ui.set_assets(artwork.clone());
+    for _ in 0..2 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    for _ in 0..6 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-root")?;
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-tooltips")?;
+    ui.set_system_equipment(mazda_ui::SystemEquipment {
+        temperature_units: true,
+        distance_units: true,
+        ..Default::default()
+    });
+    for _ in 0..3 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-temperature")?;
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-distance")?;
+    for _ in 0..3 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-about")?;
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-legal-start")?;
+    for _ in 0..300 {
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+    }
+    save(&ui, directory, "system-legal-end")?;
+    ui.handle_commander(CommanderEvent::Back);
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-version")?;
+    ui.handle_commander(CommanderEvent::Select);
+    ui.handle_commander(CommanderEvent::Back);
+    ui.handle_commander(CommanderEvent::RotateCounterClockwise);
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-reset-no")?;
+    ui.handle_commander(CommanderEvent::RotateClockwise);
+    save(&ui, directory, "system-reset-yes")?;
+    ui.handle_commander(CommanderEvent::Select);
+    save(&ui, directory, "system-reset-progress")?;
+    ui.advance_simulation(std::time::Duration::from_millis(1500));
+    save(&ui, directory, "system-reset-complete")?;
+    ui.set_system_equipment(mazda_ui::SystemEquipment {
+        temperature_units: true,
+        distance_units: true,
+        services_ready: false,
+        new_cmu: true,
+    });
+    save(&ui, directory, "system-services-unavailable")?;
+    mock.set_scenario(DemoScenario::Driving);
+    ui.refresh(&mock);
+    save(&ui, directory, "system-driving")?;
     Ok(())
 }
 

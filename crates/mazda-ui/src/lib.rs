@@ -5,6 +5,7 @@ mod preferences;
 mod settings;
 mod sound;
 mod stock_assets;
+mod system_settings;
 mod typography;
 mod ui;
 
@@ -14,6 +15,7 @@ pub use preferences::{Preferences, Theme, Units};
 pub use settings::{DisplayMode, DisplayPower, DisplayPreferences};
 pub use sound::{SoundControl, SoundPreferences, SoundProfile};
 pub use stock_assets::{Bitmap, StockAssets};
+pub use system_settings::{SystemControl, SystemEquipment, SystemPreferences};
 pub use typography::{fit_text, install_reference_font, text_width};
 pub use ui::{MediaIntent, Screen, UiModel};
 pub const DISPLAY_WIDTH: usize = 800;

@@ -17,9 +17,11 @@ not implemented; the importer pins the exact reviewed package SHA-256.
 
 The local extraction contains **4,499 GUI files and 58 fonts**. The complete local
 inventory records path, byte count and SHA-256 for every extracted regular file.
-A small decoder converts **65 original PNGs** into bounded RGBA images for Rust.
+A small decoder converts **76 original PNGs** into bounded RGBA images for Rust.
 An inert declaration reader also extracts 101 original English time-zone labels
 to an owner-local, bounded text file; no firmware JavaScript is evaluated.
+The original disclosure text is decoded from quoted string literals joined with
+`+` into owner-local `legal.txt`; calls and other expressions are rejected.
 The three Compass mask images apply the firmware CSS's 0.29 opacity to represent
 its invalid-position state. Other artwork is neither redrawn nor recolored.
 [Selected source identities](firmware-ui-evidence.json) record the inputs used.
@@ -36,6 +38,7 @@ its invalid-position state. Other artwork is neither redrawn nor recolored.
 | `apps/syssettings/js/syssettingsApp.js`, `common/controls/Tabs/*` | Original conditional seven/eight settings tabs, four visible at once, directional tab position/history and offscreen arrow jumps |
 | `apps/audiosettings/js/audiosettingsApp.js`, English dictionary, List2/Slider controls | Standard/Bose/Bose J12 row order, control ranges/defaults, tick/label/pivot behavior, checkboxes and Guidance Volume enable state |
 | `apps/syssettings/js/syssettingsApp.js`, English dictionary, ClockSettings2/Ump3/Button controls | Clock root, manual time, time-zone radio list, GPS/navigation enablement, original digit/button geometry and held-input cadence |
+| `apps/syssettings/js/legalDisclosure.js`, ScrollDetail control/template, sysupdate SoftwareInfo, Dialog3/LeftBtn | System root, conditional unit rows, About/disclosures, unavailable version dialog, restore confirmation/progress, shared Back and full-screen chrome |
 | `apps/emnavi/controls/Compass/*`, `apps/emnavi/js/emnaviApp.js`, English dictionary | Original Compass fallback, background/rail, unavailable position fields, no-navigation explanation |
 
 Home uses the original normal/focused coin images, original background and
@@ -67,14 +70,17 @@ cargo run --locked -p mazda-desktop -- --audio-profile bose
 cargo run --locked -p mazda-desktop -- --audio-profile bose-j12 --hud --guidance-disabled
 # Clock enablement fixture; does not provide a GPS/time service:
 cargo run --locked -p mazda-desktop -- --navigation-available --clock-gps-sync
+# System unit-row/service fixtures; do not detect actual car equipment:
+cargo run --locked -p mazda-desktop -- --temperature-units --distance-units
+cargo run --locked -p mazda-desktop -- --distance-units --new-cmu --system-services-unavailable
 ```
 
 The destination must be empty, and the firmware must match the pinned hash. Files
 remain local under ignored `target/owner-firmware/`. The default executable refuses
 to start if the original artwork is missing, rather than substituting a new UI.
 `MZD_FIRMWARE_PASSWORD` may supply the archive password non-interactively.
-Existing 47-image imports need reimporting into an empty directory: the current
-runtime requires all 65 images and `clock-zones.txt`. Missing inputs fail explicitly.
+Older imports need reimporting into an empty directory: the current runtime
+requires all 76 images, `clock-zones.txt` and `legal.txt`. Missing inputs fail explicitly.
 
 ```sh
 cargo fmt --all -- --check
@@ -99,6 +105,11 @@ No Docker components or container rebuilds are involved.
   hours -/+, minutes -/+ and AM/PM. A short +/- press changes on release;
   holding repeats every 250ms after the source's 1500ms hold threshold (first
   repeat at 1750ms). AM/PM is unavailable in 24h. Backspace returns to Clock.
+- System: Enter toggles Tool Tips/VR Examples or a unit preference. Conditional
+  unit rows can be enabled independently by the flags above. About opens the
+  disclosure/version routes; rotate to scroll disclosures in 28px steps. Version
+  uses the original unavailable strings until a service supplies values. Restore
+  starts on No; selecting Yes runs a local mock reset of implemented preferences.
 - Backspace: leave slider adjustment or cancel reset; leave rows for tabs, then return Home.
 - H: Home. M: Entertainment. N: Navigation/Compass fallback.
 - F: reports that the Favorites service is disconnected; it does not open Settings.
@@ -135,7 +146,8 @@ the registered marks. Bass/Treble/Fade/Balance fills extend from the midpoint;
 ALC/Guidance fill from the start. Source tick marks, center marks, end labels and
 enabled/disabled checkbox artwork are imported without executing firmware code.
 The Sound increment added six PNGs; the current Clock increment adds eighteen
-more, bringing the required local render set to 65 images.
+more, bringing that local render set to 65 images. System adds eleven more PNGs
+for dialogs, disclosure and shared Back, bringing the current set to 76.
 
 All Sound values are host-session state; there is no audible output, amplifier,
 navigation prompt or OEM-setting write. The firmware's Guidance Volume message
@@ -172,6 +184,33 @@ Home focus/activation
 animations, deep context transitions, exact touch-release timing and platform
 accessibility semantics remain incomplete. This work does not certify vehicle
 startup, cameras, interlocks, firmware compatibility, or runtime integration.
+
+## System controls and information
+
+System preserves the NA row order from `_populateListCtrl`. The initial fixture
+has Tool Tips, VR Examples, Language, Music Database Update, Restore All Factory
+Settings and About; temperature/distance availability starts absent, as in the
+declaration's helper defaults. Explicit flags add either row in its original place.
+Temperature and distance preferences remain independent; their initial °C/km
+values follow the source row declarations, not the owner's current settings.
+Simulated ignition/CAN readiness defaults present and can be withdrawn; restore is
+then disabled, and the source's New-CMU fixture also disables Distance. All edits
+additionally use the conservative host Park gate, not a certified OEM policy.
+
+About's disclosure page reads the full original legal text locally, wraps Inter
+within the source 640px body, preserves paragraph breaks and clips scrolling text
+to the 740×416 panel. The native line height uses a 34px approximation of the
+browser's normal 28px body text. ScrollDetail background/header/shadow/scrollbar
+artwork is original. Exact browser metrics, scrollbar compositing, drag/flick,
+left-button focus transitions and meter animation are not fully reproduced.
+Version Information uses Dialog3 style23 and its unavailable service strings;
+the imported firmware filename is not presented as the car's running OS version.
+Restore uses the original full-screen No/Yes and progress artwork, hides the
+status bar, defaults to No, and after a synthetic 1500ms resets Display, Sound,
+Clock and System preferences only. Equipment, source observations, files and OS
+settings remain unchanged. Loss of Park/services cancels before completion.
+Language selection, complete localization, music-update contexts, real Tool Tip/
+VR help overlays and OEM service/reset/progress timing remain pending.
 
 ## Render comparisons
 

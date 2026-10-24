@@ -172,3 +172,44 @@ clock, GPS source, UTC/time-zone/DST calculation, OEM service write, UMP tooltip
 timing, animations or original service-settle behavior is claimed. The original
 labels may contain historical time-zone information. Full Settings and vehicle
 runtime remain incomplete. No Docker service applies and no car was connected.
+
+## System controls, information and host restore, 2026-10-24
+
+Five syssettings contexts (SystemTab, About, AgreementsDisclaimers,
+FactoryResetConfirm and FactoryResetProgress) and sysupdate's SoftwareInfo
+unavailable state now have native host routes. Eleven more PNGs bring the fixed
+asset set to 76. The 2791-byte local disclosure file is decoded from literal text;
+its proprietary content and screenshots remain outside Git.
+
+- 60 Rust tests pass: core 3, desktop 8, mock 4, UI 45. Ten importer and five
+  catalog tests pass. Formatting and strict all-targets Clippy pass. No crates or
+  lockfile changes were needed.
+- Tests cover independent conditional unit rows, source order/labels, preferences,
+  nested About/Version Back routes, 28px scroll bounds, default No/explicit Yes,
+  progress completion/cancellation, service/Park revocation, preserved equipment,
+  unchanged source observations, pointer routes and invalid inputs. Text tests
+  cover bounded legal metadata, paragraph breaks, long Unicode words and signed
+  viewport clipping. Shared chrome tests prove full-screen reset hides status and
+  Back cancels. Existing tab-arrow regression still passes.
+- Fourteen deterministic System renders cover root/help state, both unit controls,
+  About, disclosure start/end, unavailable versions, No/Yes/progress/completion,
+  missing services and driving. Original legal text is wrapped in Inter within
+  source bounds; browser normal-line-height uses a documented 34px approximation.
+  This remains static-source/native proof, not an independently run Opera render.
+- The live 0.8.0 Mac preview toggled Tool Tips and VR Examples, opened disclosures,
+  scrolled to their final paragraph, returned through About and opened the version
+  dialog. Restore opened on No with no status bar, showed progress after explicit
+  Yes, returned to System and cleared both help preferences. A driving observation
+  cancelled pending confirmation and blocked edits; Park restored navigation.
+  Native mouse activation remains unverified despite model coverage.
+- The signed app was independently extracted outside Documents sync; its ad-hoc
+  signature verified and its executable matched the signed build byte-for-byte.
+  Two native smoke checks (default and units/New-CMU/services-unavailable fixtures)
+  each rendered 90 frames and exited 0 from that delivered executable.
+
+Tool Tip/VR help overlays, full language/localization, database-update contexts,
+OEM reset/service timing, meter animation, exact scrollbar behavior, drag/flick
+and left-button focus transitions remain incomplete. Mock restore completes after
+1500ms and affects only implemented host preferences. The full Settings and wider
+conversion objective remains active; car ABI/services/runtime are still unproven.
+No Docker service applies and no vehicle was connected or modified.

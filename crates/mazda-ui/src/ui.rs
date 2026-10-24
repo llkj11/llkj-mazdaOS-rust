@@ -3,6 +3,7 @@
 use crate::clock::{ClockPage, ClockSession, CLOCK_ROWS};
 use crate::settings::DisplaySession;
 use crate::sound::SoundSession;
+use crate::system_settings::{SystemPage, SystemSession};
 use crate::{
     fit_text, text_width, Color, DisplayPower, DisplayPreferences, Renderer, SoundPreferences,
     SoundProfile, StockAssets,
@@ -13,6 +14,8 @@ use std::sync::Arc;
 mod clock_ui;
 #[path = "sound_ui.rs"]
 mod sound_ui;
+#[path = "system_ui.rs"]
+mod system_ui;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MediaIntent {
@@ -114,6 +117,7 @@ pub struct UiModel {
     display: DisplaySession,
     sound: SoundSession,
     clock: ClockSession,
+    system: SystemSession,
 }
 impl UiModel {
     #[must_use]
@@ -133,6 +137,7 @@ impl UiModel {
             display: DisplaySession::default(),
             sound: SoundSession::default(),
             clock: ClockSession::default(),
+            system: SystemSession::default(),
         }
     }
     pub fn set_assets(&mut self, assets: StockAssets) {
@@ -149,6 +154,7 @@ impl UiModel {
         self.vehicle = source.vehicle_snapshot();
         self.media = source.media_state();
         self.clock.restrict(self.vehicle.is_confirmed_parked());
+        self.system.restrict(self.vehicle.is_confirmed_parked());
         if !self.vehicle.is_confirmed_parked() {
             self.display.cancel_interaction();
             self.sound.cancel_interaction();
@@ -314,6 +320,7 @@ impl UiModel {
         self.display.cancel_interaction();
         self.sound.cancel_interaction();
         self.clock.page = ClockPage::Root;
+        self.system.page = SystemPage::Root;
         self.screen = screen;
         self.row = 0;
         self.settings_rows = false;
@@ -334,6 +341,7 @@ impl UiModel {
             Screen::Settings if self.settings_tab == 1 => &DISPLAY,
             Screen::Settings if self.settings_tab == 3 => self.sound.profile.labels(),
             Screen::Settings if self.settings_tab == 4 => &CLOCK_ROWS,
+            Screen::Settings if self.settings_tab == 7 => self.system.labels(),
             _ => &[],
         }
     }
@@ -358,6 +366,11 @@ impl UiModel {
                 .get(row)
                 .is_some_and(|&control| self.sound.allowed(control, parked)),
             (Screen::Settings, 4) => self.clock.enabled(row, parked),
+            (Screen::Settings, 7) => self
+                .system
+                .controls()
+                .get(row)
+                .is_some_and(|&control| self.system.allowed(control, parked)),
             (Screen::Settings, _) => parked,
             _ => true,
         }
@@ -473,6 +486,9 @@ impl UiModel {
             4 => self
                 .clock
                 .active_event(event, parked, self.assets.clock_zones.len()),
+            7 => self
+                .system
+                .active_event(event, parked, self.legal_max_scroll()),
             _ => false,
         }
     }
@@ -489,28 +505,14 @@ impl UiModel {
                 self.vehicle.is_confirmed_parked(),
                 self.assets.clock_zones.len(),
             ),
+            (Screen::Settings, 7) => self
+                .system
+                .select(self.row, self.vehicle.is_confirmed_parked()),
             _ => Some("Menu restored; service is not connected in this host preview"),
         };
     }
     pub fn handle_pointer(&mut self, x: usize, y: usize) -> Option<MediaIntent> {
-        if self.display.values.power != DisplayPower::On {
-            self.display.values.power = DisplayPower::On;
-            return None;
-        }
-        if self.screen == Screen::Settings && self.display.reset.is_some() {
-            if (382..462).contains(&y) && (69..731).contains(&x) {
-                self.display.reset = Some(x >= 401);
-                self.display
-                    .active_event(CommanderEvent::Select, self.vehicle.is_confirmed_parked());
-            }
-            return None;
-        }
-        if self.screen != Screen::Home && x < 59 && y < 64 {
-            self.open(Screen::Home);
-            return None;
-        }
-        if self.clock_child() {
-            self.clock_pointer(x, y);
+        if self.pointer_overlay(x, y) {
             return None;
         }
         if self.screen == Screen::Home {
@@ -568,6 +570,9 @@ impl UiModel {
                     self.row = row;
                     if self.screen == Screen::Settings {
                         self.settings_rows = true;
+                        if self.settings_tab == 7 && self.system_units_pointer(row, x) {
+                            return None;
+                        }
                         if self.settings_tab == 4 && self.clock_format_pointer(row, x) {
                             return None;
                         }
@@ -589,6 +594,54 @@ impl UiModel {
         }
         None
     }
+    fn pointer_overlay(&mut self, x: usize, y: usize) -> bool {
+        if self.display.values.power != DisplayPower::On {
+            self.display.values.power = DisplayPower::On;
+            return true;
+        }
+        if self.screen == Screen::Settings && self.display.reset.is_some() {
+            if x < 94 && (64..480).contains(&y) {
+                self.display.reset = None;
+                return true;
+            }
+            if (382..462).contains(&y) && (69..731).contains(&x) {
+                self.display.reset = Some(x >= 401);
+                self.display
+                    .active_event(CommanderEvent::Select, self.vehicle.is_confirmed_parked());
+            }
+            return true;
+        }
+        if self.screen != Screen::Home && x < 59 && y < 64 {
+            if self.system_child()
+                && matches!(
+                    self.system.page,
+                    SystemPage::Confirm { .. } | SystemPage::Progress { .. }
+                )
+            {
+                return true;
+            }
+            self.open(Screen::Home);
+            return true;
+        }
+        let tab_arrow = self.screen == Screen::Settings
+            && !self.clock_child()
+            && !self.system_child()
+            && x >= 52
+            && (64..133).contains(&y);
+        if self.left_back_visible() && x < 94 && (64..480).contains(&y) && !tab_arrow {
+            self.handle_commander(CommanderEvent::Back);
+            return true;
+        }
+        if self.system_child() {
+            self.system_pointer(x, y);
+            return true;
+        }
+        if self.clock_child() {
+            self.clock_pointer(x, y);
+            return true;
+        }
+        false
+    }
     pub fn render(&self, renderer: &mut impl Renderer) {
         renderer.clear(Color::BLACK);
         if self.display.values.power != DisplayPower::On {
@@ -601,13 +654,35 @@ impl UiModel {
         }
         if self.screen == Screen::Settings && self.display.reset.is_some() {
             self.render_display_reset(renderer);
+            self.image_natural(renderer, "left-back", 0, 64);
+            return;
+        } else if self.system_child()
+            && matches!(
+                self.system.page,
+                SystemPage::Confirm { .. } | SystemPage::Progress { .. }
+            )
+        {
+            self.render_system_child(renderer);
+            self.image_natural(
+                renderer,
+                if matches!(self.system.page, SystemPage::Progress { .. }) {
+                    "left-back-disabled"
+                } else {
+                    "left-back"
+                },
+                0,
+                64,
+            );
+            return;
+        }
+        self.image(renderer, "background", (0, 0, 800, 480));
+        if self.screen == Screen::Home {
+            self.render_home(renderer);
         } else {
-            self.image(renderer, "background", (0, 0, 800, 480));
-            if self.screen == Screen::Home {
-                self.render_home(renderer);
-            } else {
-                self.render_page(renderer);
-            }
+            self.render_page(renderer);
+        }
+        if self.left_back_visible() {
+            self.image_natural(renderer, "left-back", 0, 64);
         }
         self.image(renderer, "status", (0, 0, 800, 64));
         if self.screen != Screen::Home {
@@ -620,6 +695,17 @@ impl UiModel {
                     "Compass"
                 } else if self.clock_child() {
                     "System Settings"
+                } else if self.system_child() {
+                    if self.system.page == SystemPage::Version {
+                        "System Update"
+                    } else if matches!(
+                        self.system.page,
+                        SystemPage::Confirm { .. } | SystemPage::Progress { .. }
+                    ) {
+                        "Settings"
+                    } else {
+                        "System Settings"
+                    }
                 } else {
                     self.screen.label()
                 },
@@ -636,6 +722,10 @@ impl UiModel {
         if let Some(bitmap) = self.assets.get(name) {
             r.image(rect.0, rect.1, rect.2, rect.3, bitmap);
         }
+    }
+    fn left_back_visible(&self) -> bool {
+        self.screen != Screen::Home
+            && !(self.clock_child() && matches!(self.clock.page, ClockPage::Adjust { .. }))
     }
     fn image_natural(&self, r: &mut impl Renderer, name: &str, x: i32, y: i32) {
         if let Some(bitmap) = self.assets.get(name) {
@@ -869,6 +959,10 @@ impl UiModel {
         }
     }
     fn render_page(&self, r: &mut impl Renderer) {
+        if self.system_child() {
+            self.render_system_child(r);
+            return;
+        }
         if self.clock_child() {
             self.render_clock_child(r);
             return;
@@ -908,6 +1002,8 @@ impl UiModel {
                 self.render_sound(r);
             } else if self.settings_tab == 4 {
                 self.render_clock_root(r);
+            } else if self.settings_tab == 7 {
+                self.render_system_root(r);
             }
             return;
         }
@@ -1320,5 +1416,113 @@ mod tests {
         ui.handle_pointer(200, 160);
         assert_eq!(ui.row, 2);
         assert_eq!(ui.clock.page, ClockPage::Root);
+    }
+    #[test]
+    fn system_reset_confirms_then_resets_host_preferences_and_preserves_equipment_and_observations()
+    {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.set_sound_profile(crate::SoundProfile::Bose);
+        ui.set_guidance_available(false);
+        ui.clock.navigation_available = true;
+        ui.display.values.brightness = 4;
+        ui.sound.values.bass = -5;
+        ui.clock.values.hour = 22;
+        ui.system.values.tool_tips = true;
+        ui.open(Screen::Settings);
+        ui.settings_tab = 7;
+        ui.settings_rows = true;
+        ui.row = 4;
+        let vehicle = ui.vehicle.clone();
+        let media = ui.media.clone();
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.system.page, SystemPage::Confirm { yes: false });
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.sound.values.bass, -5);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_commander(CommanderEvent::RotateClockwise);
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.system.page, SystemPage::Progress { elapsed_ms: 0 });
+        ui.advance_simulation(std::time::Duration::from_millis(1499));
+        assert_eq!(ui.clock.values.hour, 22);
+        ui.advance_simulation(std::time::Duration::from_millis(1));
+        assert_eq!(ui.display.values, crate::DisplayPreferences::default());
+        assert_eq!(ui.sound.values, crate::SoundPreferences::default());
+        assert_eq!(ui.clock.values, crate::ClockPreferences::default());
+        assert_eq!(ui.system.values, crate::SystemPreferences::default());
+        assert_eq!(ui.sound.profile, crate::SoundProfile::Bose);
+        assert!(!ui.sound.guidance_enabled);
+        assert!(ui.clock.navigation_available);
+        assert_eq!(ui.row, 4);
+        assert_eq!(ui.system.page, SystemPage::Root);
+        assert_eq!(ui.vehicle, vehicle);
+        assert_eq!(ui.media, media);
+    }
+    #[test]
+    fn system_pointer_routes_and_service_loss_cancel_reset_without_changes() {
+        let mut ui = UiModel::from_source(&Fixture);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 7;
+        ui.settings_rows = true;
+        ui.set_system_equipment(crate::SystemEquipment {
+            temperature_units: true,
+            distance_units: true,
+            ..Default::default()
+        });
+        ui.system.values.celsius = false;
+        ui.system.values.kilometers = false;
+        ui.handle_pointer(680, 133 + 3 * 64 + 20);
+        assert!(ui.system.values.celsius);
+        assert!(!ui.system.values.kilometers);
+        ui.row = 6;
+        ui.handle_commander(CommanderEvent::Select);
+        ui.handle_pointer(600, 420);
+        assert!(matches!(ui.system.page, SystemPage::Progress { .. }));
+        ui.system.equipment.services_ready = false;
+        ui.advance_simulation(std::time::Duration::MAX);
+        assert_eq!(ui.system.page, SystemPage::Root);
+        assert!(ui.system.values.celsius);
+        ui.row = 7;
+        ui.handle_commander(CommanderEvent::Select);
+        assert_eq!(ui.system.page, SystemPage::About { focus: 0 });
+        ui.handle_pointer(300, 220);
+        assert_eq!(ui.system.page, SystemPage::Version);
+        ui.handle_pointer(400, 420);
+        assert_eq!(ui.system.page, SystemPage::About { focus: 1 });
+        ui.handle_commander(CommanderEvent::Back);
+        assert_eq!(ui.row, 7);
+        let before = ui.system.values;
+        ui.handle_pointer(usize::MAX, usize::MAX);
+        assert_eq!(ui.system.values, before);
+    }
+    #[test]
+    fn full_screen_reset_hides_status_and_left_back_cancels_without_confirmation() {
+        let mut ui = UiModel::from_source(&Fixture);
+        let mut assets = StockAssets::default();
+        let mut bytes = b"MZRGBA01".to_vec();
+        bytes.extend(1_u32.to_le_bytes());
+        bytes.extend(1_u32.to_le_bytes());
+        bytes.extend([255, 0, 0, 255]);
+        assets.insert("status", crate::Bitmap::decode(&bytes).unwrap());
+        ui.set_assets(assets);
+        ui.open(Screen::Settings);
+        ui.settings_tab = 7;
+        ui.settings_rows = true;
+        ui.row = 4;
+        let mut frame = crate::Framebuffer::mazda_connect();
+        ui.render(&mut frame);
+        assert_eq!(frame.pixels()[400], 0x00ff_0000);
+        ui.handle_commander(CommanderEvent::Select);
+        ui.render(&mut frame);
+        assert_eq!(frame.pixels()[400], 0);
+        ui.handle_pointer(10, 200);
+        assert_eq!(ui.system.page, SystemPage::Root);
+        ui.settings_tab = 1;
+        ui.display.values.brightness = 3;
+        ui.display.reset = Some(false);
+        ui.render(&mut frame);
+        assert_eq!(frame.pixels()[400], 0);
+        ui.handle_pointer(10, 200);
+        assert_eq!(ui.display.reset, None);
+        assert_eq!(ui.display.values.brightness, 3);
     }
 }

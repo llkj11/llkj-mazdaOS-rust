@@ -26,5 +26,12 @@ pub fn load(directory: &Path) -> io::Result<StockAssets> {
             "invalid original time-zone text",
         ));
     }
+    let legal = directory.join("legal.txt");
+    if fs::metadata(&legal)?.len() > 132_000 || !assets.load_legal_text(&fs::read(legal)?) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid original disclosure text",
+        ));
+    }
     Ok(assets)
 }

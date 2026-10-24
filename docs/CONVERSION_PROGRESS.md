@@ -11,12 +11,12 @@ Static declaration extraction currently finds these contexts:
 
 | Firmware app | Declared contexts | Statically resolved list rows | Implementation status |
 | --- | ---: | ---: | --- |
-| syssettings | 28 | 115 | Display host controls and three Clock contexts implemented; remaining contexts, live services and timing still pending |
+| syssettings | 28 | 115 | Display, Clock, System root/About/disclosures/reset host flows implemented; language, communication/devices and live services remain |
 | audiosettings | 1 | 0 | SoundTab host controls implemented for standard/Bose/Bose J12; real services, guidance SBN and detailed timing remain |
 | vehsettings | 81 | 176 | Catalogued; full native implementation and verification pending |
 | btpairing | 35 | 12 | Catalogued; full native implementation and verification pending |
 | netmgmt | 16 | 0 | Catalogued; full native implementation and verification pending |
-| sysupdate | 31 | 2 | Catalogued; full native implementation and verification pending |
+| sysupdate | 31 | 2 | SoftwareInfo unavailable-state dialog implemented; update/search/install contexts and services remain |
 
 There are 192 contexts across these six apps, plus system display-off/clock contexts
 and equipment-dependent list variants. Empty static row lists often mean that the
@@ -53,6 +53,13 @@ error. A catalogued screen does not imply its routing, layout or behavior works.
   there is no running clock, GPS source or time-zone/DST calculation service.
   Native keyboard checks pass; precise tooltips, transitions and OEM service
   settling remain. Shared list rotation now skips disabled rows as List2 does.
+- Settings System: NA root order, Tool Tips/VR Examples preferences, conditional
+  independent temperature/distance rows, About, owner-local scrollable disclosures,
+  unavailable version dialog, and No/Yes restore/progress are implemented. Reset
+  changes only implemented host preferences and preserves equipment/observations.
+  Its 1500ms mock completion is not OEM service timing. Language selection and
+  music database update remain explicitly disconnected, requiring conversion.
+  Shared original Back artwork and full-screen reset chrome are restored.
 
 ## Required proof before completion
 

@@ -47,6 +47,17 @@ class ImportChecks(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'hash differs'):
                 importer.extract(path/'wrong.up',path/'output','unused')
             self.assertFalse((path/'output').exists())
+    def test_disclosure_accepts_only_literal_concatenation_and_preserves_newlines(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'jci/gui/apps/syssettings/js/legalDisclosure.js';path.parent.mkdir(parents=True)
+            path.write_text('var ScrollDetailCtrlProperties={scrollDetailBody:"First\\n" + /* inert */ "é"}; dangerous();')
+            self.assertEqual(importer.legal_text(Path(directory)), 'MZLEGAL1\nFirst\né'.encode())
+    def test_disclosure_rejects_calls_properties_malformed_and_control_text(self):
+        for text in ['"a"+dangerous()','"a".replace("a","b")','"a"+','"unsafe\\ttext"','"'+('x'*32769)+'"']:
+            with tempfile.TemporaryDirectory() as directory:
+                path=Path(directory)/'jci/gui/apps/syssettings/js/legalDisclosure.js';path.parent.mkdir(parents=True)
+                path.write_text('var ScrollDetailCtrlProperties={scrollDetailBody:'+text+'};')
+                with self.assertRaises((ValueError,IndexError)):importer.legal_text(Path(directory))
     def test_clock_labels_preserve_source_order_and_unicode_without_evaluation(self):
         with tempfile.TemporaryDirectory() as directory:
             gui=Path(directory)/'jci/gui';app=gui/'apps/syssettings/js/syssettingsApp.js';app.parent.mkdir(parents=True)

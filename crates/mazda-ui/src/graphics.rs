@@ -56,6 +56,14 @@ pub trait Renderer {
     fn clear(&mut self, color: Color);
     fn fill_rect(&mut self, rect: Rect, color: Color);
     fn text(&mut self, x: usize, y: usize, text: &str, size: usize, color: Color);
+    fn text_clipped(
+        &mut self,
+        origin: (i32, i32),
+        text: &str,
+        size: usize,
+        color: Color,
+        clip: Rect,
+    );
     fn image(&mut self, x: i32, y: i32, width: usize, height: usize, bitmap: &Bitmap);
 }
 
@@ -133,9 +141,31 @@ impl Renderer for Framebuffer {
         {
             return;
         }
+        self.text_clipped(
+            (
+                i32::try_from(x).expect("visible coordinate"),
+                i32::try_from(y).expect("visible coordinate"),
+            ),
+            text,
+            size,
+            color,
+            Rect::new(0, 0, self.width, self.height),
+        );
+    }
+    fn text_clipped(
+        &mut self,
+        origin: (i32, i32),
+        text: &str,
+        size: usize,
+        color: Color,
+        clip: Rect,
+    ) {
+        if !(8..=crate::typography::MAX_FONT_SIZE).contains(&size) {
+            return;
+        }
         let run = text_run(text, size);
-        let origin_x = i64::try_from(x).expect("visible framebuffer coordinate");
-        let origin_y = i64::try_from(y).expect("visible framebuffer coordinate");
+        let origin_x = i64::from(origin.0);
+        let origin_y = i64::from(origin.1);
         for glyph in &run.glyphs {
             let w = usize::try_from(glyph.image.placement.width).expect("bounded glyph width");
             for (index, alpha) in glyph.image.data.iter().copied().enumerate() {
@@ -151,7 +181,7 @@ impl Renderer for Framebuffer {
                 let (Ok(px), Ok(py)) = (usize::try_from(px), usize::try_from(py)) else {
                     continue;
                 };
-                if px < self.width && py < self.height {
+                if px < self.width && py < self.height && clip.contains(px, py) {
                     let pixel = &mut self.pixels[py * self.width + px];
                     *pixel = blend(*pixel, color.raw(), alpha);
                 }
@@ -187,6 +217,21 @@ mod tests {
         frame.text(usize::MAX, 0, "A", 24, Color::TEXT);
         frame.text(0, usize::MAX, "A", 24, Color::TEXT);
         frame.text(0, 0, "A", usize::MAX, Color::TEXT);
+        assert_eq!(frame.pixels(), before);
+    }
+    #[test]
+    fn signed_scrolling_text_cannot_draw_outside_the_panel() {
+        let mut frame = Framebuffer::new(100, 80);
+        let clip = Rect::new(20, 30, 60, 30);
+        frame.text_clipped((5, 18), "Scrolling", 35, Color::TEXT, clip);
+        assert!(frame.pixels().iter().any(|&p| p != 0));
+        for (index, &pixel) in frame.pixels().iter().enumerate() {
+            if !clip.contains(index % 100, index / 100) {
+                assert_eq!(pixel, 0);
+            }
+        }
+        let before = frame.pixels().to_vec();
+        frame.text_clipped((i32::MIN, i32::MIN), "Extreme", 28, Color::TEXT, clip);
         assert_eq!(frame.pixels(), before);
     }
     #[test]

@@ -492,6 +492,106 @@
       "path": "jci/gui/common/controls/Button/js/ButtonCtrl.js",
       "bytes": 36382,
       "sha256": "7d3519c48a2dfdf6a2bfac943dcffdff21f11b13330e0f8754c5e42e8109e919"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/DialogBG_Style01.png",
+      "bytes": 4060,
+      "sha256": "b4d73c0fe60cdeb777915d9ed5b1b4ef93c455fb3150fc1b66f17e018e3795a4"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_1Btn_Focus.png",
+      "bytes": 25879,
+      "sha256": "933bd19a6d2be31c3fabd222f17c7d1260a640b79ec1c5263cc61d9ad3092b72"
+    },
+    {
+      "path": "jci/gui/common/images/IndeterminateMeter.png",
+      "bytes": 43620,
+      "sha256": "eb0628414e35f5464c8455444743500655fad5779e2129435884bcb5f099a438"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailBackground.png",
+      "bytes": 3049,
+      "sha256": "cd60f4e9556617a066665e9721a6675331d8fec6f64d71220aaa3eda2c7dbc28"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailBackground_Focus.png",
+      "bytes": 4213,
+      "sha256": "47d8fb36c81ef4f391d4b9181d7fdfe3c5744bd60954337d878119c1435cf4f1"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailHeadBack_Bg.png",
+      "bytes": 1136,
+      "sha256": "0174df706ffc4348aeb2650bdd6b0ba7160a39c9e59f840158a6fff160d9f598"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollbarBg.png",
+      "bytes": 3310,
+      "sha256": "208821902a7c42b5e540568bcf8cacc560f9775f5b5525b49a8c77f1864110dd"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/Scrollbar.png",
+      "bytes": 3036,
+      "sha256": "f94720b16ef3952605f5db7c2aec12380b8caf809b27cb1b338276caefdd25a2"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailBottomShadow.png",
+      "bytes": 276,
+      "sha256": "e339adb38070226c3ea87d6e40e8be7574c5488151404b7ae9bf40d46d30932b"
+    },
+    {
+      "path": "jci/gui/apps/syssettings/js/legalDisclosure.js",
+      "bytes": 4427,
+      "sha256": "b9be593c1a4064b67aea7e85bcd05355d80b9a89f06d0f03a2ee77f0e7ff704b"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/css/ScrollDetailCtrl.css",
+      "bytes": 5611,
+      "sha256": "ef52b5dd2557053f86550a695770cc2238f47216bcae3371249be107c7575b51"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/js/ScrollDetailCtrl.js",
+      "bytes": 48738,
+      "sha256": "a37cf075645128a24ed079436e29b92fcf8d8dff6b0924e811ba7200b574fa91"
+    },
+    {
+      "path": "jci/gui/common/templates/ScrollDetail/js/ScrollDetailTmplt.js",
+      "bytes": 5303,
+      "sha256": "650af4b36d8078ab154c5d3be9080f439611913d80d2fd84241f2679c675f0f8"
+    },
+    {
+      "path": "jci/gui/apps/sysupdate/js/sysupdateApp.js",
+      "bytes": 66811,
+      "sha256": "34fe4ea7c20adce5c622042d19bc86d728e8225cc38a5c2b29fb22fb823b1a73"
+    },
+    {
+      "path": "jci/gui/resources/js/sysupdate/sysupdateAppDict_en_US.js",
+      "bytes": 4787,
+      "sha256": "ca72989ca3212f597830508c3b1ea8eae0767c2f5ca46da874cbe61184e98119"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/images/BtnLeft_En.png",
+      "bytes": 26859,
+      "sha256": "8121bc091b399d4d39cbae3433d63e4907f985d51ab2ec1de48418ebd9dc3b5e"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/images/BtnLeft_Ds.png",
+      "bytes": 25630,
+      "sha256": "347fcac67bfcf7cd4507ece127654654aa14b7bc8b9689baafa7eac0c7953e03"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/css/LeftBtnCtrl.css",
+      "bytes": 8847,
+      "sha256": "9af4b08bb745061bd7eb540419667aa7215b3fe83909d90bc9b5c8278ac59593"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/js/LeftBtnCtrl.js",
+      "bytes": 13845,
+      "sha256": "04ed664d19440349f9f38c85db3aa9f7ebe329e238052a3c77a771ca16b69e3a"
+    },
+    {
+      "path": "jci/gui/common/templates/Dialog3/js/Dialog3Tmplt.js",
+      "bytes": 3626,
+      "sha256": "68b3e7385ddaea613134c670f53ce3ba9037ce50f4fc3ed249940382682ddec6"
     }
   ]
 }

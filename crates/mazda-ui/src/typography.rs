@@ -190,6 +190,28 @@ pub(crate) fn ellipsized(text: &str, max_width: usize, size: usize) -> String {
     String::new()
 }
 
+pub(crate) fn wrapped_lines(text: &str, width: usize, size: usize) -> Vec<String> {
+    let mut lines = Vec::new();
+    for paragraph in text.split('\n') {
+        let mut line = String::new();
+        for ch in paragraph.chars() {
+            line.push(ch);
+            if text_width(&line, size) > width || line.chars().count() >= MAX_CHARACTERS {
+                if let Some(space) = line.rfind(' ').filter(|&i| i > 0) {
+                    lines.push(line[..space].to_owned());
+                    line.drain(..=space);
+                } else {
+                    line.pop();
+                    lines.push(line);
+                    line = ch.to_string();
+                }
+            }
+        }
+        lines.push(line);
+    }
+    lines
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

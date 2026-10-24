@@ -42,28 +42,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     window.set_target_fps(60);
     let mut last_source_refresh = Instant::now();
     let mut last_notice = None;
+    let mut last_frame = Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        for key in window.get_keys_pressed(KeyRepeat::Yes) {
-            if let Some(event) = commander_rotation_event(key) {
-                handle_event(&mut ui, &mut mazda, event);
-            }
-        }
-        for key in window.get_keys_pressed(KeyRepeat::No) {
-            if matches!(key, Key::Enter | Key::Space) {
-                if let Some(button) = ui.clock_repeat_target() {
-                    clock_hold = Some(ClockHold::new(button, HoldSource::Key(key), Instant::now()));
-                    continue;
-                }
-            }
-            if let Some(scenario) = scenario_key(key) {
-                mazda.set_scenario(scenario);
-                ui.refresh(&mazda);
-            }
-            if let Some(event) = commander_button_event(key) {
-                handle_event(&mut ui, &mut mazda, event);
-            }
-        }
+        handle_keys(&window, &mut ui, &mut mazda, &mut clock_hold);
 
         let pointer_down = window.get_mouse_down(MouseButton::Left);
         if pointer_down && !pointer_was_down {
@@ -100,6 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             last_source_refresh = Instant::now();
         }
         poll_clock_hold(&mut clock_hold, &window, &mut ui, &mut mazda);
+        advance_simulation(&mut last_frame, &mut ui);
         if ui.notice() != last_notice {
             window.set_title(&ui.notice().map_or_else(
                 || base_title.clone(),
@@ -119,6 +102,40 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn handle_keys(
+    window: &Window,
+    ui: &mut UiModel,
+    mazda: &mut MockMazda,
+    clock_hold: &mut Option<ClockHold>,
+) {
+    for key in window.get_keys_pressed(KeyRepeat::Yes) {
+        if let Some(event) = commander_rotation_event(key) {
+            handle_event(ui, mazda, event);
+        }
+    }
+    for key in window.get_keys_pressed(KeyRepeat::No) {
+        if matches!(key, Key::Enter | Key::Space) {
+            if let Some(button) = ui.clock_repeat_target() {
+                *clock_hold = Some(ClockHold::new(button, HoldSource::Key(key), Instant::now()));
+                continue;
+            }
+        }
+        if let Some(scenario) = scenario_key(key) {
+            mazda.set_scenario(scenario);
+            ui.refresh(mazda);
+        }
+        if let Some(event) = commander_button_event(key) {
+            handle_event(ui, mazda, event);
+        }
+    }
+}
+
+fn advance_simulation(last_frame: &mut Instant, ui: &mut UiModel) {
+    let now = Instant::now();
+    ui.advance_simulation(now.saturating_duration_since(*last_frame));
+    *last_frame = now;
+}
+
 fn configure_fixtures(
     ui: &mut UiModel,
     arguments: &[std::ffi::OsString],
@@ -129,6 +146,14 @@ fn configure_fixtures(
     ui.set_guidance_available(!arguments.iter().any(|arg| arg == "--guidance-disabled"));
     ui.set_clock_navigation_available(arguments.iter().any(|arg| arg == "--navigation-available"));
     ui.set_clock_gps_sync(arguments.iter().any(|arg| arg == "--clock-gps-sync"));
+    ui.set_system_equipment(mazda_ui::SystemEquipment {
+        temperature_units: arguments.iter().any(|arg| arg == "--temperature-units"),
+        distance_units: arguments.iter().any(|arg| arg == "--distance-units"),
+        services_ready: !arguments
+            .iter()
+            .any(|arg| arg == "--system-services-unavailable"),
+        new_cmu: arguments.iter().any(|arg| arg == "--new-cmu"),
+    });
 }
 
 fn load_artwork(

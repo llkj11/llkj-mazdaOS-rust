@@ -90,9 +90,21 @@ impl Bitmap {
 pub struct StockAssets {
     images: BTreeMap<String, Bitmap>,
     pub(crate) clock_zones: Vec<String>,
+    pub(crate) legal_lines: Vec<String>,
 }
 impl StockAssets {
-    pub const NAMES: [&'static str; 65] = [
+    pub const NAMES: [&'static str; 76] = [
+        "left-back",
+        "left-back-disabled",
+        "system-dialog-bg",
+        "system-dialog-ok",
+        "system-meter",
+        "legal-background",
+        "legal-focus",
+        "legal-header",
+        "legal-scroll-bg",
+        "legal-scroll",
+        "legal-shadow",
         "clock-background",
         "clock-colon",
         "clock-panel",
@@ -172,6 +184,27 @@ impl StockAssets {
             .iter()
             .all(|name| self.images.contains_key(*name))
             && !self.clock_zones.is_empty()
+            && !self.legal_lines.is_empty()
+    }
+    /// Owner-only disclosure text, never a script or external link to follow.
+    pub fn load_legal_text(&mut self, bytes: &[u8]) -> bool {
+        if bytes.len() > 132_000 {
+            return false;
+        }
+        let Some(text) = std::str::from_utf8(bytes)
+            .ok()
+            .and_then(|s| s.strip_prefix("MZLEGAL1\n"))
+        else {
+            return false;
+        };
+        if text.is_empty()
+            || text.chars().count() > 32_768
+            || text.chars().any(|c| c.is_control() && c != '\n')
+        {
+            return false;
+        }
+        self.legal_lines = crate::typography::wrapped_lines(text, 640, 28);
+        true
     }
     /// Bounded owner-derived text, with no JavaScript, expression or timezone execution.
     pub fn load_clock_zones(&mut self, bytes: &[u8]) -> bool {
@@ -266,5 +299,30 @@ mod tests {
         assert!(
             !assets.load_clock_zones(format!("MZTIMEZONES1\n{}", "label\n".repeat(129)).as_bytes())
         );
+    }
+    #[test]
+    fn disclosure_text_is_bounded_wrapped_and_invalid_input_preserves_previous_lines() {
+        let mut assets = StockAssets::default();
+        assert!(assets.load_legal_text(b"MZLEGAL1\nFirst paragraph.\n\nSecond paragraph."));
+        assert_eq!(
+            assets.legal_lines,
+            ["First paragraph.", "", "Second paragraph."]
+        );
+        let before = assets.legal_lines.clone();
+        for input in [
+            b"wrong".as_slice(),
+            b"MZLEGAL1\n",
+            b"MZLEGAL1\nunsafe\x00text",
+            b"MZLEGAL1\n\xff",
+        ] {
+            assert!(!assets.load_legal_text(input));
+            assert_eq!(assets.legal_lines, before);
+        }
+        assert!(!assets.load_legal_text(format!("MZLEGAL1\n{}", "x".repeat(32769)).as_bytes()));
+        assert!(assets.load_legal_text(format!("MZLEGAL1\n{}", "é".repeat(400)).as_bytes()));
+        assert!(assets
+            .legal_lines
+            .iter()
+            .all(|line| crate::text_width(line, 28) <= 640 && line.chars().count() <= 256));
     }
 }
