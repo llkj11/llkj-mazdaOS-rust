@@ -1,5 +1,10 @@
 # Car-specific CMU USB inspection
 
+> Preserved upstream research. This fork targets host-only 2018 Mazda6 simulation.
+> Its default builds and CI exclude this utility and its privileged BusyBox fixture.
+> The CI description below records upstream behavior, not this fork's current workflow.
+> Do not follow these media-preparation instructions as part of the simulator task.
+
 `mazda-cmu-inspect` prepares a **bench-only**, report-only USB payload for one target identity:
 
 - 2019.5 Mazda CX-5 GT;

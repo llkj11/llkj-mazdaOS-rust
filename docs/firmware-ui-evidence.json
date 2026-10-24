@@ -1,0 +1,812 @@
+{
+  "package_sha256": "5938019df7e333447c7bf60aa8f6a7e7f9cd50d6eeb7b6e33605800b85bd4ad0",
+  "gui_files": 4499,
+  "font_files": 58,
+  "selected_sources": [
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/images/CompassBg.png",
+      "bytes": 1956,
+      "sha256": "9c7a7f99ff63a3b0ced706e4f04eaaf0e093dd053f3b2825fb74b7d2c2d300a1"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/images/CompassForeground.png",
+      "bytes": 14331,
+      "sha256": "3ba9f32e53d2227f08622eb46164ae6833452fa4a1b95ab568149c77d094f51a"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/images/GreyRail.png",
+      "bytes": 2217,
+      "sha256": "a47fc2047884a7b4331b9c86f9c11bd03219da8670d1c800587071ce00168fd2"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/images/Step.png",
+      "bytes": 1141,
+      "sha256": "b03990b97ee1da07903bd10831443ed21921aa4d65f77efe1f76ff844fe2de36"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/images/Needle.png",
+      "bytes": 529,
+      "sha256": "fb0553481025253bb6f5200c7af75485ffc54e4462fef3adb7361520b56ad3cd"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/images/WhiteLine.png",
+      "bytes": 604,
+      "sha256": "d8f2a14ecb77ddbdc4e76d8eb6d3274f296b54155990e9c7fdadddbb4707c736"
+    },
+    {
+      "path": "jci/gui/common/controls/Tabs/images/Tab_ArrowLeft.png",
+      "bytes": 247,
+      "sha256": "b1317bc88dc2272d8b1ebc552cf83c28e0cc523caddbdccd1a6a070892bfb165"
+    },
+    {
+      "path": "jci/gui/common/controls/Tabs/images/Tab_ArrowRight.png",
+      "bytes": 255,
+      "sha256": "0dc3990666912cff47781abc8a37bbc35d44618d9c182b3384e9b976ff033e80"
+    },
+    {
+      "path": "jci/gui/common/controls/Tabs/images/Tab_Style04.png",
+      "bytes": 6747,
+      "sha256": "11044f779bfeea7b50108a3d3c11ff7fbc0aee7c2067be657313e4f0a81366cd"
+    },
+    {
+      "path": "jci/gui/common/controls/Tabs/images/TabHighlight_Style04.png",
+      "bytes": 5350,
+      "sha256": "9d793dd88390623b9cbf28efb3e0e96963005d16c47c95694d9f1edaa6ebfdff"
+    },
+    {
+      "path": "jci/gui/common/images/background.png",
+      "bytes": 190791,
+      "sha256": "807b79209e0540fa4d0b8fe76a32b87f9e229089ecc722f874476001f85353b6"
+    },
+    {
+      "path": "jci/gui/common/controls/StatusBar/images/StatusBarBg.png",
+      "bytes": 1451,
+      "sha256": "e14203d37d5c9b376240abc7f03419d0f5c4bbd921f0d638d4e63a49c59c8555"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/Ellipse.png",
+      "bytes": 81195,
+      "sha256": "7f1913b41bb9f120c5c985bb740ec1d3c0f2be1a5586436e3b39ee61dd224310"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/highlights/Glow.png",
+      "bytes": 80704,
+      "sha256": "00138a9f1cb919fca1ca82ec4439614add5bdc9c217250dfe58d4d14684393ac"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnSbHome.png",
+      "bytes": 440,
+      "sha256": "771196f4f2b073d8a6bc95db07c80bd7bcdf11f5df894d01780de180086debba"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListBackground.png",
+      "bytes": 3051,
+      "sha256": "52b5cd6be437e80edbdfa0ec1618961bec6b7a52cb71cab8a45aee45ad6ea206"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListFocus.png",
+      "bytes": 45707,
+      "sha256": "239fac0cbfe53c9f7a2fcfc21df3a0953fc1c0ce7b87950412f1aa8ffc50b5b1"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItemSeparator.png",
+      "bytes": 178,
+      "sha256": "c14960aa2bc97afd511b48ccecbf33f52eda8605c9d8c41fee7a1e9ec3c823d1"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/images/ChromeArcRight.png",
+      "bytes": 14838,
+      "sha256": "8eeeeab3e2655cb8ed5a267ffbcf572e40dfaa15ed754bdf78485d33a29793de"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeApps.png",
+      "bytes": 26432,
+      "sha256": "4ab22be241a2a047cc0c4434ff12e9e106404c02731e247a29e8d2346ac926ee"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeApps_Focus.png",
+      "bytes": 36065,
+      "sha256": "51e4565b21c9ed4381cdaa6aad8fdd321c7f0a75ed0ab6e83d27a0f2a27a3431"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeAudio.png",
+      "bytes": 37201,
+      "sha256": "c489c1be2334dd131e17a365cad08305ea5ed0d6c7105952bcccac4ec8dc0222"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeAudio_Focus.png",
+      "bytes": 51513,
+      "sha256": "62be524f36a95e534aed553a1204831d69ae9b15ca9733e77349d77e037af5b1"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeCom.png",
+      "bytes": 36890,
+      "sha256": "5e3a7c076727fbdde5c17b50bf675470abf5c99ec7fc7107001475e08354522d"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeCom_Focus.png",
+      "bytes": 51629,
+      "sha256": "31baa1f57bc843e03d49446f57e5b0d4ae6d3c85f238f2de5cd996c424a0bdd7"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeNav.png",
+      "bytes": 38402,
+      "sha256": "74bc5ef24b1a9ba90863d0fdb49700e5acd1f30ea65a5616117fba9e91de9ea7"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeNav_Focus.png",
+      "bytes": 52611,
+      "sha256": "019e86b25f59e072cd8b194c863f0af8f96f1d82771bf134580d016283b420cc"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeSet.png",
+      "bytes": 26592,
+      "sha256": "4b7b94c29b1ed23dba5abac3d76d3b68b3ef004a535bcdb4869193ded50c94ca"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/images/coins/HomeSet_Focus.png",
+      "bytes": 37319,
+      "sha256": "d6b0f3d5cc194017728ccfcdb6d7d5a4c7be4e689e12bbe8c5ba66c2f6a36781"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/js/MainMenuCtrl.js",
+      "bytes": 21842,
+      "sha256": "2a7864e33d7fdef00513c6dc52859362d1d5898b2bd882fa924166bc0dc12065"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/MainMenu/css/MainMenuCtrl.css",
+      "bytes": 7376,
+      "sha256": "3b0af7f47e7ea0e9f69aa435594ae8c8a5a5feb439abab8fae32993c3dda26e2"
+    },
+    {
+      "path": "jci/gui/apps/system/templates/MainMenu/js/MainMenuTmplt.js",
+      "bytes": 3757,
+      "sha256": "e6d1691793984e6a02f9da325ea776fec28b594f1d9628b81641ba7ae032ab70"
+    },
+    {
+      "path": "jci/gui/apps/system/js/systemApp.js",
+      "bytes": 118057,
+      "sha256": "4946e156f54c7ea6b78fe6bfb4b2d86c10b49e2bf741bea132fd0d70eb7b19a7"
+    },
+    {
+      "path": "jci/gui/apps/system/js/systemAppDict_en_US.js",
+      "bytes": 3996,
+      "sha256": "37aa023508b53b8cac53bba73037d89992bb667ba0204fe9f3a3d077aa47a844"
+    },
+    {
+      "path": "jci/gui/common/css/common.css",
+      "bytes": 1275,
+      "sha256": "deb2e5d2e7f3cf0741f79d7504ac7606353eb0c90e68f27233126f69e5ab704f"
+    },
+    {
+      "path": "jci/gui/common/transitions/css/TransitionsGen.css",
+      "bytes": 11806,
+      "sha256": "cda097e512983a8328502bf7eb660b879a0b6a9a711c7065666b22820927225e"
+    },
+    {
+      "path": "jci/gui/common/controls/StatusBar/css/StatusBarCtrl.css",
+      "bytes": 4660,
+      "sha256": "98da50198808afa020590fbe724e0cca28d910e1093ef14da361f7175f725b88"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/css/List2Ctrl.css",
+      "bytes": 256394,
+      "sha256": "a0925c138d616ccbcab0fd9afe4d05320d7514fe9654f0e735b83427714f2189"
+    },
+    {
+      "path": "jci/gui/common/controls/Tabs/js/TabsCtrl.js",
+      "bytes": 24921,
+      "sha256": "ed3d8a48ed21fc5e963339227236dc9b70d5051d6204198f831fd8d5d418334d"
+    },
+    {
+      "path": "jci/gui/common/controls/Tabs/css/TabsCtrl.css",
+      "bytes": 4852,
+      "sha256": "3586a8f6cfd7ecb19ad0247eb9f8422e7aafad3c316e3768efdefd4a15340dcf"
+    },
+    {
+      "path": "jci/gui/apps/syssettings/js/syssettingsApp.js",
+      "bytes": 266784,
+      "sha256": "02af474aa4db6846da11b521b418c255d60b9474415b38c22706ae6f166d2c96"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/js/emnaviApp.js",
+      "bytes": 36450,
+      "sha256": "b8217de9711181897c1aa012d23e8bc0426007b97271bb562c465c88f30db387"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/js/CompassCtrl.js",
+      "bytes": 19632,
+      "sha256": "e2cd595201b422c9df9ab0478b650c7d5310586fca90e2d4215466d4b0227041"
+    },
+    {
+      "path": "jci/gui/apps/emnavi/controls/Compass/css/CompassCtrl.css",
+      "bytes": 3574,
+      "sha256": "1d0f97ee4561acd26b4a14dfca0a4e1b6b778a00ed403fc750b38e8d4f20f250"
+    },
+    {
+      "path": "jci/fonts/Tipperary.ttf",
+      "bytes": 162488,
+      "sha256": "80773129756bbe5f219fe9076b4dc21390c32f47778c664e6542861215fdbfe3"
+    },
+    {
+      "path": "jci/fonts/TipperarySemibold.ttf",
+      "bytes": 171520,
+      "sha256": "615f9993a23175e867cf20f3be8ae50f604857775b338bfa2b81cd4c6330bb23"
+    },
+    {
+      "path": "jci/gui/apps/syssettings/images/SettingsTestImage.png",
+      "bytes": 151406,
+      "sha256": "6f0b3e55a53de00e81e80d2b7d74cb22446b97c0a15301705f0c1144d91876e9"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/InLineButton.png",
+      "bytes": 622,
+      "sha256": "33a7af4ae2564eef4a41a98e527efeba1e38381426053e7b633055be4d0f81d3"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/InLineButton_Selected.png",
+      "bytes": 3515,
+      "sha256": "7052e6ccb8665bc4c22282014709a2ffbb66478500f16f70c6fa1c4e47b66531"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_SliderBG-1.png",
+      "bytes": 195,
+      "sha256": "05461d8b80ed7cf51b6cc0f9ac8855040dcc5ecee8688a8da3d549fcff996904"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider-1.png",
+      "bytes": 184,
+      "sha256": "24ebd3677cf2443ba9a1c1d9f441db44f0610fed4598cb0e1b87ae394ea4df68"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider_Focus-1.png",
+      "bytes": 182,
+      "sha256": "0845209f07050b205d2c48473ad0d3243cfe95886e88fd9633bcbca476bb0f1a"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider_Knob.png",
+      "bytes": 953,
+      "sha256": "4cb9c398391d307bbf4c0d7b5fdc2ad5d331caa983fa342bcd7780ba6d893a96"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/ListItem_Slider_KnobFocus-1.png",
+      "bytes": 3332,
+      "sha256": "5367b568895f9a13d31546cd5b77d877de34d5a2430b27d44b073f517a9640bb"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/DialogBG_Style02.png",
+      "bytes": 3686,
+      "sha256": "5b553f7e62f98812d42d2726eba67f2a2e8d3cab94786a0616f6d64b187154e0"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_2Btn.png",
+      "bytes": 984,
+      "sha256": "5e5803f923228597c59f2138571ae271b5b9debc8aa5e909a901bb6b39ba6147"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_2Btn_Focus.png",
+      "bytes": 16762,
+      "sha256": "5211c06edb250957580bf0098243519bf61638993e667fa80aea0781b192f6a8"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/OffScreen/images/OffScreenBackground.png",
+      "bytes": 9012,
+      "sha256": "e0fbbf2a1ed0895ec422bc15d10d8c572dd8023e85541e464ab4ac1ea7aefb3a"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/js/List2Ctrl.js",
+      "bytes": 475746,
+      "sha256": "52195d55c6615b9d61e9b25f48f90382e8ebe671edb154daa08d8915eca6f96f"
+    },
+    {
+      "path": "jci/gui/common/controls/Slider/js/SliderCtrl.js",
+      "bytes": 66579,
+      "sha256": "b908394e4ae805b3569e039caf2effd18e06b5995285a162313a91348f0cf40a"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/js/Dialog3Ctrl.js",
+      "bytes": 63846,
+      "sha256": "3538e318126eb0e73d7bd9cdf843ce47095ed1d775928ddef3108f18b6291a54"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/css/Dialog3Ctrl.css",
+      "bytes": 32198,
+      "sha256": "0de050a4ab45875f8a0f15caadbe5866a0613a92c1e4bec69764ac900f83305e"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/OffScreen/js/OffScreenCtrl.js",
+      "bytes": 4042,
+      "sha256": "f5c476f18ebbd1a2563e20f7633199108a3e82dbce9f9ad2669f0b149927d58f"
+    },
+    {
+      "path": "jci/gui/apps/system/controls/OffScreen/css/OffScreenCtrl.css",
+      "bytes": 220,
+      "sha256": "e7df77deaf4134f86c9f31a112b86362c93fdb9d6602e2e20213cc39458203f8"
+    },
+    {
+      "path": "jci/gui/resources/js/syssettings/syssettingsAppDict_en_US.js",
+      "bytes": 16973,
+      "sha256": "4134a26c5595b591856c5b067a9e678ecbdceef0cbad3fba1687ffdb1df1768d"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Checked_En.png",
+      "bytes": 1312,
+      "sha256": "0ec0338d851a7925ae274bdc8304a7808daa039f1e17ff3c5332f1f32ec5f610"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Unchecked_En.png",
+      "bytes": 324,
+      "sha256": "7ea07754a1f77f7e1416faddd58fc27220a4141b16304894dfacc11677853d6d"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Checked_Ds.png",
+      "bytes": 1088,
+      "sha256": "9f275460f362a45662afe53469837fc379f50bfce0802eac5521abef669d1291"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/IcnListCheck_Unchecked_Ds.png",
+      "bytes": 277,
+      "sha256": "6e534e4d919826268a545b87b7e66bb778063d5975be1bfafe280a05c9ff406c"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/List_SliderTick.png",
+      "bytes": 117,
+      "sha256": "c9a40aad0896db7769d2ededa2ba4cc038d5397aee6b5ec55337d97a0706f9da"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/List_SliderTickCtr.png",
+      "bytes": 113,
+      "sha256": "761fae0141eb28c16196e2d7d7fca2caacfda7fbd14b7c0a11d88243e3d34b11"
+    },
+    {
+      "path": "jci/gui/apps/audiosettings/js/audiosettingsApp.js",
+      "bytes": 50975,
+      "sha256": "857d980769b83a416df2af99ed0757d283ffdb58542c112988a861fda4ee9944"
+    },
+    {
+      "path": "jci/gui/resources/js/audiosettings/audiosettingsAppDict_en_US.js",
+      "bytes": 620,
+      "sha256": "8c3616ecf51ab99fc9aa907b553551d2e1e318f9e049d532261abdb0a05554b1"
+    },
+    {
+      "path": "jci/gui/common/controls/Slider/css/SliderCtrl.css",
+      "bytes": 1062,
+      "sha256": "2fef2d25e6bac43df693d055b437ae8a0bd706a5dde307d03d593d044b785fd7"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/images/ClockSettingBG.png",
+      "bytes": 31640,
+      "sha256": "6d5f8667f2670a9fd7a909750d5969f44302084db87cf8ed4b49948c21eca5b4"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/images/ClockSetting_Colon_En.png",
+      "bytes": 375,
+      "sha256": "23762d1978eb47330499624869b8d71ff3ff46b2d39d6a4acd8013a2196a4b2b"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Bg.png",
+      "bytes": 1070,
+      "sha256": "9645dbd986be8581e09d458a6987c932ea9c6790b9b74a6fc418874b814555f4"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Bg_Arch.png",
+      "bytes": 7910,
+      "sha256": "9ad16cc5ac0ce6eb2a04ee1037173ff5bbf806ce9286b9b53e639b723305e31f"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Btn_Separator.png",
+      "bytes": 311,
+      "sha256": "3625ad77662ff5291dc418a6ca7bc87ccffec8db47e413996939ba7c85843f64"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/images/UMP_Focus_6.png",
+      "bytes": 18782,
+      "sha256": "540584302fcb912c8b71dc7ef961a429bc458b3e5375f125155707b1fde8edf2"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpBack_En.png",
+      "bytes": 1564,
+      "sha256": "fd0c9754b99b4d3810647ff373f0581b281ad580b8c3f65c267b5ef77647a222"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpMinus_En.png",
+      "bytes": 513,
+      "sha256": "033a3d2bdd244856e297a5483b6a8aaffeb74bc9247c8c91886144d55e9d5b5d"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpMinus_Ds.png",
+      "bytes": 433,
+      "sha256": "67a903b892e62f469ca4cec7341f8e4355f928b97698f2138258b2389b251acf"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpPlus_En.png",
+      "bytes": 826,
+      "sha256": "98bf1ca92666e8eecd17c7a07a6deceaac8719ba5a32b13595f14a261c7a7e73"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpPlus_Ds.png",
+      "bytes": 686,
+      "sha256": "2666cbacda283ec85da0db999a6a136785d1c86ca60c47077f0e3e3250bc92e2"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpAmPm_En.png",
+      "bytes": 3176,
+      "sha256": "4dcb5b4d7791e6892d4342542b262b2c0c4214c1e38739e83de0593318169919"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnUmpAmPm_Ds.png",
+      "bytes": 2812,
+      "sha256": "b1f369e1c4f64ee38c68a142107799ceaecf37548c83ae68e5b02c8cd4455f10"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Checked_En.png",
+      "bytes": 1590,
+      "sha256": "f6dfef5fddefeacae87d62a6555b6100e07b8f6510881db0f822281c275c3f31"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Unchecked_En.png",
+      "bytes": 1457,
+      "sha256": "1e2e67a3c30336cf4e4730890db40a22e563fd84f38aa79cc93c6478a89dc7ca"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Checked_Ds.png",
+      "bytes": 1397,
+      "sha256": "156f58a1246627ebcf5cd06cc88b1fbea236c4edc113641e54e352745767a6be"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListRadio_Unchecked_Ds.png",
+      "bytes": 1261,
+      "sha256": "ed3fd13ef5b6563b49f96208607d9886a0d5ba62c66358fdc9448fff57202082"
+    },
+    {
+      "path": "jci/gui/common/controls/List2/images/TitleStyle01_HeaderBg.png",
+      "bytes": 1324,
+      "sha256": "9c1efb0d3ba06989f34fd09a845764563bfd6a7629688e47131aebc7ff006ff5"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/js/ClockSettings2Ctrl.js",
+      "bytes": 29990,
+      "sha256": "a4266f91504e79dd4183dafadeaa3768799051d1a69196841dda62a1ba686ef0"
+    },
+    {
+      "path": "jci/gui/common/controls/ClockSettings2/css/ClockSettings2Ctrl.css",
+      "bytes": 2997,
+      "sha256": "44c4b781655ba6b581b36bb3deb3209371afeb188a64b5d4b9833ddae0b9f22b"
+    },
+    {
+      "path": "jci/gui/common/templates/ClockSettings2/js/ClockSettings2Tmplt.js",
+      "bytes": 5362,
+      "sha256": "2344cb42b164ed05b206df0c2e61bfd5db5534f799beeb9b8f0e2d7e853b8d04"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/js/Ump3Ctrl.js",
+      "bytes": 117393,
+      "sha256": "2167489e604482a050da62d231cbd7cd5e6f24889ce0c47604bf8d10fe6a2b97"
+    },
+    {
+      "path": "jci/gui/common/controls/Ump3/css/Ump3Ctrl.css",
+      "bytes": 16469,
+      "sha256": "37f46738d309b4823a8239f4feeb0d291d6dfa94a5624000f9ab16a7fe6ed324"
+    },
+    {
+      "path": "jci/gui/common/controls/Button/js/ButtonCtrl.js",
+      "bytes": 36382,
+      "sha256": "7d3519c48a2dfdf6a2bfac943dcffdff21f11b13330e0f8754c5e42e8109e919"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/DialogBG_Style01.png",
+      "bytes": 4060,
+      "sha256": "b4d73c0fe60cdeb777915d9ed5b1b4ef93c455fb3150fc1b66f17e018e3795a4"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_1Btn_Focus.png",
+      "bytes": 25879,
+      "sha256": "933bd19a6d2be31c3fabd222f17c7d1260a640b79ec1c5263cc61d9ad3092b72"
+    },
+    {
+      "path": "jci/gui/common/images/IndeterminateMeter.png",
+      "bytes": 43620,
+      "sha256": "eb0628414e35f5464c8455444743500655fad5779e2129435884bcb5f099a438"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailBackground.png",
+      "bytes": 3049,
+      "sha256": "cd60f4e9556617a066665e9721a6675331d8fec6f64d71220aaa3eda2c7dbc28"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailBackground_Focus.png",
+      "bytes": 4213,
+      "sha256": "47d8fb36c81ef4f391d4b9181d7fdfe3c5744bd60954337d878119c1435cf4f1"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailHeadBack_Bg.png",
+      "bytes": 1136,
+      "sha256": "0174df706ffc4348aeb2650bdd6b0ba7160a39c9e59f840158a6fff160d9f598"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollbarBg.png",
+      "bytes": 3310,
+      "sha256": "208821902a7c42b5e540568bcf8cacc560f9775f5b5525b49a8c77f1864110dd"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/Scrollbar.png",
+      "bytes": 3036,
+      "sha256": "f94720b16ef3952605f5db7c2aec12380b8caf809b27cb1b338276caefdd25a2"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/images/ScrollDetailBottomShadow.png",
+      "bytes": 276,
+      "sha256": "e339adb38070226c3ea87d6e40e8be7574c5488151404b7ae9bf40d46d30932b"
+    },
+    {
+      "path": "jci/gui/apps/syssettings/js/legalDisclosure.js",
+      "bytes": 4427,
+      "sha256": "b9be593c1a4064b67aea7e85bcd05355d80b9a89f06d0f03a2ee77f0e7ff704b"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/css/ScrollDetailCtrl.css",
+      "bytes": 5611,
+      "sha256": "ef52b5dd2557053f86550a695770cc2238f47216bcae3371249be107c7575b51"
+    },
+    {
+      "path": "jci/gui/common/controls/ScrollDetail/js/ScrollDetailCtrl.js",
+      "bytes": 48738,
+      "sha256": "a37cf075645128a24ed079436e29b92fcf8d8dff6b0924e811ba7200b574fa91"
+    },
+    {
+      "path": "jci/gui/common/templates/ScrollDetail/js/ScrollDetailTmplt.js",
+      "bytes": 5303,
+      "sha256": "650af4b36d8078ab154c5d3be9080f439611913d80d2fd84241f2679c675f0f8"
+    },
+    {
+      "path": "jci/gui/apps/sysupdate/js/sysupdateApp.js",
+      "bytes": 66811,
+      "sha256": "34fe4ea7c20adce5c622042d19bc86d728e8225cc38a5c2b29fb22fb823b1a73"
+    },
+    {
+      "path": "jci/gui/resources/js/sysupdate/sysupdateAppDict_en_US.js",
+      "bytes": 4787,
+      "sha256": "ca72989ca3212f597830508c3b1ea8eae0767c2f5ca46da874cbe61184e98119"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/images/BtnLeft_En.png",
+      "bytes": 26859,
+      "sha256": "8121bc091b399d4d39cbae3433d63e4907f985d51ab2ec1de48418ebd9dc3b5e"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/images/BtnLeft_Ds.png",
+      "bytes": 25630,
+      "sha256": "347fcac67bfcf7cd4507ece127654654aa14b7bc8b9689baafa7eac0c7953e03"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/css/LeftBtnCtrl.css",
+      "bytes": 8847,
+      "sha256": "9af4b08bb745061bd7eb540419667aa7215b3fe83909d90bc9b5c8278ac59593"
+    },
+    {
+      "path": "jci/gui/common/controls/LeftBtn/js/LeftBtnCtrl.js",
+      "bytes": 13845,
+      "sha256": "04ed664d19440349f9f38c85db3aa9f7ebe329e238052a3c77a771ca16b69e3a"
+    },
+    {
+      "path": "jci/gui/common/templates/Dialog3/js/Dialog3Tmplt.js",
+      "bytes": 3626,
+      "sha256": "68b3e7385ddaea613134c670f53ce3ba9037ce50f4fc3ed249940382682ddec6"
+    },
+    {
+      "path": "jci/gui/apps/syssettings/images/voice_recognition.png",
+      "bytes": 1522,
+      "sha256": "6e5429de31d09ea578db211501679772549325a8f3e20aaa7c95e69c13e33446"
+    },
+    {
+      "path": "jci/gui/framework/js/Localization.js",
+      "bytes": 32541,
+      "sha256": "907f7d41e3eea90998b7324b43735ac70137be131509b9324a736f3715f69de0"
+    },
+    {
+      "path": "jci/gui/resources/js/common/commonAppDict_en_US.js",
+      "bytes": 6963,
+      "sha256": "ebb3a5d0dda8de0a06ff20e8a132be6a7c5bcfa0c7f43944fd59bab696620809"
+    },
+    {
+      "path": "jci/gui/resources/js/common/commonAppDict_es_MX.js",
+      "bytes": 7482,
+      "sha256": "778704e42e12ed1b4d14215631a79008a9ee223936dc91f05e0de88d31f8e629"
+    },
+    {
+      "path": "jci/gui/resources/js/common/commonAppDict_fr_CN.js",
+      "bytes": 7666,
+      "sha256": "d72d1e42cc36083eb11652b3a2afc999a6d346eb693197d36239203b31e876b7"
+    },
+    {
+      "path": "jci/gui/resources/js/system/systemAppDict_en_US.js",
+      "bytes": 28187,
+      "sha256": "a0258cfb08cbb325c29c705b0883a6b383ee6c026c5c52472362e6741fc3a7b9"
+    },
+    {
+      "path": "jci/gui/resources/js/system/systemAppDict_es_MX.js",
+      "bytes": 30550,
+      "sha256": "176f8835de82edb38442a9f7b4bc92d56493fac31fad9d9d86b11ca7543855b5"
+    },
+    {
+      "path": "jci/gui/resources/js/system/systemAppDict_fr_CN.js",
+      "bytes": 31146,
+      "sha256": "563c49f88904f7d72106eed6b9af28fd71643f8732eddc9afd6349f3d96bc941"
+    },
+    {
+      "path": "jci/gui/resources/js/syssettings/syssettingsAppDict_es_MX.js",
+      "bytes": 17437,
+      "sha256": "cf027f5e087f32561cc6c1ae2ed10aab0727f225139d7bc31842e8a0ef9d350c"
+    },
+    {
+      "path": "jci/gui/resources/js/syssettings/syssettingsAppDict_fr_CN.js",
+      "bytes": 17699,
+      "sha256": "9258aa3f4802f3e4b801d725d59bd5ae466e6d02454b807c451670bf69089591"
+    },
+    {
+      "path": "jci/gui/resources/js/audiosettings/audiosettingsAppDict_es_MX.js",
+      "bytes": 668,
+      "sha256": "53c19cd94ab7971dfaed3265c87a1901f1dd9d18309733eb46ba45063c9c4cfb"
+    },
+    {
+      "path": "jci/gui/resources/js/audiosettings/audiosettingsAppDict_fr_CN.js",
+      "bytes": 650,
+      "sha256": "0948b4176ac54c75a8f68cf491d1dff712dcaa5e055151b01efe37c8e35b0965"
+    },
+    {
+      "path": "jci/gui/resources/js/emnavi/emnaviAppDict_en_US.js",
+      "bytes": 2669,
+      "sha256": "b217a586773f97cf2237af3a312aced58b46f2eecdb4fdd2413966185eef10e5"
+    },
+    {
+      "path": "jci/gui/resources/js/emnavi/emnaviAppDict_es_MX.js",
+      "bytes": 2743,
+      "sha256": "e20dfd856e742719866523dd1674ba58f017b7e8986a68ad76ba162ba0c3b812"
+    },
+    {
+      "path": "jci/gui/resources/js/emnavi/emnaviAppDict_fr_CN.js",
+      "bytes": 2768,
+      "sha256": "c5f299b57fdc2d2bb5bda3085b5459930ed1d5491c0c9eac09cc1ac08fbbb880"
+    },
+    {
+      "path": "jci/gui/resources/js/sysupdate/sysupdateAppDict_es_MX.js",
+      "bytes": 5273,
+      "sha256": "1144a1d2d4c57dd933017991f63b71ff0f6b85c717efc4115c6fc74ee236f226"
+    },
+    {
+      "path": "jci/gui/resources/js/sysupdate/sysupdateAppDict_fr_CN.js",
+      "bytes": 5327,
+      "sha256": "2331f8e308ec46814bd973d2af4e6ff9e80e9ff416a3a5ff3ba796c27c300b6a"
+    },
+    {
+      "path": "jci/gui/common/images/IndeterminateMeter_2.png",
+      "bytes": 43620,
+      "sha256": "eb0628414e35f5464c8455444743500655fad5779e2129435884bcb5f099a438"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_ProgressBar_Background.png",
+      "bytes": 211,
+      "sha256": "53eac0554a830978b9ba4204f6802926f7f1b97b65cf888680ff08f08f9089bc"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_ProgressBar_Highlight.png",
+      "bytes": 190,
+      "sha256": "03dd6d49d284af41b73ab5b442e88c48467149df3c000fcc8dc18b4e5724e28a"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/TitleSeparatorLine-1.png",
+      "bytes": 128,
+      "sha256": "ff95a983fb873e3d4edefca0bbb9d02c57a0ee19f9f4766f95583a5a6230161f"
+    },
+    {
+      "path": "jci/gui/common/templates/Dialog3/css/Dialog3Tmplt.css",
+      "bytes": 84,
+      "sha256": "dfeaef80d480811ca517aff5f981f19d90367c37d70c7fa6cf741618618d57a1"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListBtConnType_Phone.png",
+      "bytes": 550,
+      "sha256": "ad84afbedc7c2d820fe44071342c0d6db27e22be66f5855e1675b18abc67615b"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListBtConnType_Music.png",
+      "bytes": 428,
+      "sha256": "d53c4af503d1c836373e71f034bd82118407f37c36a673e76eb77e924f21bf72"
+    },
+    {
+      "path": "jci/gui/common/images/icons/IcnListCheckmark.png",
+      "bytes": 458,
+      "sha256": "691d3af2d6f5f11eded3893856a2ed7882ed7b4cd2cea4d766bed0104126166c"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_3Btn.png",
+      "bytes": 881,
+      "sha256": "f880e8d9d88b20b03f59073afedc93252d2c11fdf1c101b21dc65c1a3b1bb7be"
+    },
+    {
+      "path": "jci/gui/common/controls/Dialog3/images/Dialog_3Btn_Focus.png",
+      "bytes": 12344,
+      "sha256": "e574662ba876b8d3174207676ef3ceeb42a64c66c64431e2153b1ab2f76b7e44"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/DialPadKeystyle03_Bkgd.png",
+      "bytes": 2094,
+      "sha256": "330da6cb21f188a477afc5a901e957d5cadcfc4a8f5c7da8661b7a6e92ae5c76"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/DialKey.png",
+      "bytes": 896,
+      "sha256": "dfc11370b6df43d0d2dde654c9079a384b868a41b42222b8269aa8a3d5a7c8ac"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Key_Focus.png",
+      "bytes": 7414,
+      "sha256": "dab5cf710df84fc60b0765c833bdd13a2fea4cd491b0e1d4dc21291854125e25"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Delete_Btn.png",
+      "bytes": 2430,
+      "sha256": "c46e838f421f0f2f6df8f696e7d542de10b6719782c130998187e7e1c5ff8775"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Icn_Delete.png",
+      "bytes": 3559,
+      "sha256": "93c0bc5954ddc9b4b46b16aaea6a70183f6a96b02a41704a4809453fde55e62a"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/Icn_Send.png",
+      "bytes": 1728,
+      "sha256": "2680f92d616b06d2dcfbb074b5f3855d34e8dd3ff04998e101bc234341609d3e"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/images/BtnLeft_En.png",
+      "bytes": 3417,
+      "sha256": "2094f676bb6fa8a562a166a5f843d480e803d7ea0af2044fc821f0af73c5f5e8"
+    },
+    {
+      "path": "jci/gui/resources/js/btpairing/btpairingAppDict_en_US.js",
+      "bytes": 3890,
+      "sha256": "befdf890c1d480f065e164bb31fce9d42a277126bdeb4337280582cd1d43d0b4"
+    },
+    {
+      "path": "jci/gui/resources/js/btpairing/btpairingAppDict_es_MX.js",
+      "bytes": 4251,
+      "sha256": "677ab284525f3e0358098a2d5aba1ecd16ed276583c586506b7e51dff9f14c5b"
+    },
+    {
+      "path": "jci/gui/resources/js/btpairing/btpairingAppDict_fr_CN.js",
+      "bytes": 4326,
+      "sha256": "0a854ff013f05a0b83526519df81daab5ea2200eac4efd849a95f48d0dbe3687"
+    },
+    {
+      "path": "jci/gui/apps/btpairing/js/btpairingApp.js",
+      "bytes": 129899,
+      "sha256": "0c9501a0bb6f056865969d14f06d0995f0ffc5be8f30b692b9cf2fee4eaa59f2"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/js/DialPad2Ctrl.js",
+      "bytes": 76394,
+      "sha256": "bec0f3ce824d1e9101d267810f51a6591ceb488d498e44c9637685c465ac0603"
+    },
+    {
+      "path": "jci/gui/common/controls/DialPad2/css/DialPad2Ctrl.css",
+      "bytes": 8525,
+      "sha256": "87441db13eae0da8e62df83d32c1dc89c8cd8197c0c74661c3e9a82d3372bd38"
+    },
+    {
+      "path": "jci/gui/common/templates/DialPad2/js/DialPad2Tmplt.js",
+      "bytes": 3838,
+      "sha256": "69214a2195c31b484ad03b4996e04a77385d65b911bf54652b6c8cd678b92661"
+    },
+    {
+      "path": "jci/gui/common/templates/DialPad2/css/DialPad2Tmplt.css",
+      "bytes": 146,
+      "sha256": "63a233ed7070da5e2023e56661d6485cc9929f51d1ba4c432ababbc02b348895"
+    },
+    {
+      "path": "jci/gui/apps/btpairing/images/IcnListRemoveItem.gif",
+      "bytes": 1519,
+      "sha256": "a5d3fa4776804b38a6dfa07c298fead6c87a68ae8440b53bb48d7e3f769770b3"
+    }
+  ]
+}

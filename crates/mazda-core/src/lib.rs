@@ -63,6 +63,15 @@ pub struct VehicleSnapshot {
     pub outside_temperature: TemperatureC,
 }
 
+impl VehicleSnapshot {
+    /// Conservative host-UI policy; never a replacement for stock vehicle interlocks.
+    /// Missing, invalid, moving, or non-Park data cannot authorize preference editing.
+    #[must_use]
+    pub fn is_confirmed_parked(&self) -> bool {
+        self.gear == Gear::Park && self.speed.get() == Some(0.0)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PlaybackState {
     Stopped,
@@ -102,7 +111,37 @@ pub trait MazdaReadOnly {
 
 #[cfg(test)]
 mod tests {
-    use super::SpeedKph;
+    use super::{Gear, SpeedKph, TemperatureC, VehicleSnapshot};
+
+    #[test]
+    fn preferences_require_both_confirmed_park_and_valid_zero_speed() {
+        for gear in [
+            Gear::Park,
+            Gear::Reverse,
+            Gear::Neutral,
+            Gear::Drive,
+            Gear::Manual,
+            Gear::Unknown,
+        ] {
+            for speed in [0.0, 0.1, -1.0, f32::NAN, f32::INFINITY] {
+                let snapshot = VehicleSnapshot {
+                    gear,
+                    speed: SpeedKph::new(speed),
+                    outside_temperature: TemperatureC::new(20.0),
+                };
+                assert_eq!(
+                    snapshot.is_confirmed_parked(),
+                    gear == Gear::Park && speed == 0.0
+                );
+            }
+        }
+        let unavailable = VehicleSnapshot {
+            gear: Gear::Park,
+            speed: SpeedKph::unavailable(),
+            outside_temperature: TemperatureC::new(20.0),
+        };
+        assert!(!unavailable.is_confirmed_parked());
+    }
 
     #[test]
     fn speed_preserves_valid_zero_and_positive_values() {

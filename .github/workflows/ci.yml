@@ -1,51 +1,29 @@
-name: CI
+name: Host simulator
 
-on:
-  push:
-  pull_request:
+on: [push, pull_request]
 
 permissions:
   contents: read
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  desktop:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
         with:
           components: rustfmt, clippy
-      - name: Format
-        run: cargo fmt --all -- --check
-      - name: Clippy
-        run: cargo clippy --workspace --all-targets --locked -- -D warnings
-      - name: Test
-        run: cargo test --workspace --locked
-      - name: Fetch pinned BusyBox 1.19 fixture
-        run: |
-          curl --fail --silent --show-error --location \
-            https://busybox.net/downloads/binaries/1.19.0/busybox-x86_64 \
-            --output "${{ runner.temp }}/busybox"
-          echo "0d8564c5a85b0976eeed24afc99894e1b2a1d21d54bb5cb673c33f72b3743f8c  ${{ runner.temp }}/busybox" \
-            | sha256sum --check --strict
-          chmod 755 "${{ runner.temp }}/busybox"
-      - name: Test CMU production shell path with BusyBox 1.19
-        env:
-          MAZDA_CMU_INSPECT_BUSYBOX_1_19: ${{ runner.temp }}/busybox
-          MAZDA_CMU_INSPECT_USE_SUDO_CHROOT: "1"
-        run: >-
-          cargo test --locked -p mazda-cmu-inspect
-          tests::busybox_1_19_production_fixture_exercises_launcher_and_timeout
-          -- --exact --nocapture
-
-  macos-cmu-inspect:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - name: Check macOS media validation
-        run: cargo clippy -p mazda-cmu-inspect --all-targets --locked -- -D warnings
-      - name: Test macOS media validation
-        run: cargo test -p mazda-cmu-inspect --locked
+      - name: Linux window libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev libxcursor-dev libxrandr-dev libxi-dev libwayland-dev libxkbcommon-dev
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: python3 tools/test-import-firmware-ui.py
+      - run: python3 tools/test-catalog-settings.py
+      - run: cargo test --locked
+      - run: cargo build --locked -p mazda-desktop
